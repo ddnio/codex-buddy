@@ -1,122 +1,159 @@
 ---
 name: codex-buddy
-description: Use when reviewing your own code, making high-stakes architecture decisions, verifying facts near your knowledge cutoff, or when your answer feels suspiciously smooth and confident. Also trigger when user explicitly requests cross-model validation. Do NOT trigger for simple tasks, obvious answers, or pure formatting work.
+description: >
+  Cross-model validation via Codex CLI (GPT-4o). Invoke this skill when:
+  (1) reviewing Claude's own code or analysis to catch self-validation blindspots,
+  (2) making high-stakes architecture decisions where multiple valid approaches exist,
+  (3) Claude's answer feels suspiciously smooth or too confident (fluency is a red flag),
+  (4) asserting facts near Claude's knowledge cutoff,
+  (5) user explicitly asks for cross-model collaboration or a second opinion.
+  Do NOT invoke for simple Q&A, obvious tasks, pure formatting, or anything already iterated with Codex.
+  IMPORTANT: The more confident Claude feels, the more this skill should trigger — overconfidence is the exact failure mode it protects against.
 ---
 
 # codex-buddy
 
-## Overview
+Claude + Codex (GPT-4o) 跨模型协作验证。核心价值：两个模型的训练路径、RLHF 偏好、执行能力不同，通过引入"受控异质性"打破单模型的闭环自洽。
 
-Codex CLI（GPT-4o）作为 AI 伙伴，通过直接调用 `codex exec` CLI 实现跨模型独立验证。核心价值：与 Claude 推理路径互补，训练数据和 RLHF 偏好不同，能真正执行命令验证结果，独立上下文判断更客观。
+**注意：两模型一致 ≠ 正确。共识只代表共享训练分布，真值来自外部执行验证。**
 
-**前置条件：必须已安装 codex CLI**
+---
+
+## 前置条件
+
 ```bash
 npm install -g @openai/codex
-codex --version   # 验证安装
+codex --version
+# 使用 $(which codex) 获取二进制路径
 ```
 
 ---
 
-## 触发判断
+## 触发判断（风险分级）
 
-### ✅ 应该触发
+**触发**（满足任意一项）：
+- 破坏性操作或涉及环境状态变更
+- 存在两个以上同样合理的方案（架构、技术选型）
+- 事实可能过时或接近知识截止点
+- 无法通过本地执行快速验证
+- Claude 置信度很高但推理链短（越流畅越危险）
+- 用户明确要求跨模型验证
 
-| 场景 | 原因 |
-|---|---|
-| 审查 Claude 自己写的代码 | 避免自我验证盲区 |
-| 技术方案有重大权衡 | GPT-4o 可能有不同判断 |
-| Claude 回答"异常流畅/过于自信" | 越顺畅越可能是在合理化 |
-| 需要实际执行命令验证 | Codex 能真正跑命令 |
-| 知识截止点附近的事实断言 | 减少幻觉 |
-| 用户明确要求跨模型协作 | 直接触发 |
-
-### ❌ 不应触发（节省时间和 token）
-
-简单问答、明确标准答案的任务、纯格式操作、已在 Codex 会话迭代过的内容
+**不触发**（节省成本）：
+- 简单问答、明确标准答案
+- 纯格式/文档操作
+- 已在 Codex 会话迭代过的内容
 
 ---
 
-## 三种工作模式
+## 工作模式（升级链路）
 
-### Mode A — Review（默认，单次调用）
+三种模式是**升级路径**，不是平行选择：先用 Mode A，发现分歧来自方案空间时升 B，仍有不可解冲突时升 C。
 
-Claude 产出内容后，调用 Codex 独立审查：
+### Mode A — Review（默认）
 
-```bash
-codex exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-review.txt \
-  "以下是 Claude 的分析/代码，请独立审查并指出分歧或问题：\n<Claude的输出>"
-```
-
-读取 `/tmp/codex-review.txt`，向用户报告分歧点。
-
-**适用：** 代码审查、事实验证、方案 double-check
-
-### Mode B — Parallel（并行独立，单次调用）
-
-不传 Claude 的答案，让 Codex 独立回答同一问题：
+Claude 产出后，让 Codex 审查**结论 + 关键假设 + 未验证部分**（不只是最终结果）：
 
 ```bash
-codex exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-parallel.txt \
-  "请独立回答以下问题：<原始问题>"
+CODEX_BIN=$(which codex)
+OUTPUT_FILE="/tmp/codex-review-$(date +%s).txt"
+
+$CODEX_BIN exec \
+  -C <项目目录> \
+  -s read-only \
+  --skip-git-repo-check \
+  -o "$OUTPUT_FILE" \
+  "请审查以下 Claude 的产出，重点检查：
+1. 结论是否有明显错误
+2. 哪些关键假设没有被验证
+3. 忽略了哪些边界条件或风险
+4. 与你的独立判断有哪些分歧
+
+Claude 的产出：
+<粘贴内容>"
+
+cat "$OUTPUT_FILE"
 ```
 
-Claude 自己也独立回答，然后综合两个视角给用户。
+读取输出，向用户报告分歧点。**分歧 = "需要人工判断"的信号，不代表 Codex 一定对。**
 
-**适用：** 技术选型、架构决策
-
-### Mode C — Debate（多轮，硬性封顶 3 轮）
-
-**第 1 轮：** Claude 先答 → 传给 Codex 反驳
-
-```bash
-codex exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-debate-1.txt \
-  "Claude 的观点是：<...>，请从不同角度反驳或补充"
-```
-
-**第 2 轮：** 带上 Codex 反驳 → Claude 回应 → 再问 Codex
-
-```bash
-# 读取 SESSION_ID 后恢复会话
-codex exec resume <SESSION_ID>
-# 或恢复最近一次
-codex exec resume --last
-```
-
-**硬性限制：**
-- 最多 3 轮（最多 2 次 codex 调用）
-- 每轮后判断是否收敛：若分歧不影响结论则提前终止
-- 告知用户本次调用耗时较长
-
-**适用：** 架构决策深度讨论
+**适用：** 代码审查、事实验证、高风险操作前 double-check
 
 ---
 
-## 使用注意事项
+### Mode B — Parallel（独立并行）
 
-1. **Prompt 精炼**：只传必要上下文，不传完整对话历史
-2. **沙盒选择**：默认 `read-only`，涉及文件修改时用 `-s workspace-write` 并告知用户
-3. **输出解析**：用 `-o <FILE>` 保存结果，避免解析终端颜色码
-4. **分歧解读**：Codex 与 Claude 分歧 ≠ Codex 对，是"需要人工判断"的信号
-5. **禁止递归**：Codex 的结论不再交给 Codex 验证
+不传 Claude 的答案，保持独立性，各自回答同一问题后综合：
+
+```bash
+CODEX_BIN=$(which codex)
+OUTPUT_FILE="/tmp/codex-parallel-$(date +%s).txt"
+
+$CODEX_BIN exec \
+  -C <项目目录> \
+  -s read-only \
+  --skip-git-repo-check \
+  -o "$OUTPUT_FILE" \
+  "请独立回答：<原始问题>
+（不需要与任何其他模型保持一致，给出你自己的独立判断）"
+
+cat "$OUTPUT_FILE"
+```
+
+Claude 同步独立作答，然后综合两个视角：标出共识、标出分歧、说明采用哪个及原因。
+
+**适用：** 架构取舍、API 设计、技术选型
+
+**升级到 Mode C 的信号：** Mode B 后仍有核心分歧，且分歧有可检验依据。
 
 ---
 
-## CLI 快速参考
+### Mode C — Debate（多轮，硬性 3 轮封顶）
 
-| 参数 | 说明 |
-|---|---|
-| `-C <DIR>` | 工作目录 |
-| `-s read-only` | 只读沙盒（默认） |
-| `-s workspace-write` | 可写工作区 |
-| `--skip-git-repo-check` | 允许在非 Git 目录运行 |
-| `-o <FILE>` | 最终结果写入文件 |
-| `--ephemeral` | 不持久化会话 |
-| `--json` | 输出 JSONL 格式 |
-| `-m <MODEL>` | 指定模型 |
+**仅在 Mode B 发现实质性分歧后使用。**
 
-Codex 二进制位置：`/Users/nio/.nvm/versions/node/v22.21.1/bin/codex`
+**第 1 轮：** Claude 先表态 → Codex 独立反驳
 
-完整 CLI 示例见 `references/cli-examples.md`
+```bash
+$CODEX_BIN exec \
+  -C <项目目录> \
+  -s read-only \
+  --skip-git-repo-check \
+  -o /tmp/codex-debate-r1.txt \
+  "当前讨论的问题是：<问题描述>
+
+Claude 的立场是：<Claude 的观点>
+
+请从不同角度反驳或补充。注意：每个论点请标注其类型
+- [可执行验证] 可通过运行代码/命令证实
+- [文档证据] 有明确文档/规范支持
+- [经验推断] 基于工程经验的合理推断
+- [逻辑假设] 纯逻辑推演，未经验证"
+```
+
+**第 2 轮：** Claude 回应 Codex 的反驳，聚焦有新证据的分歧点
+
+**终止规则（满足任意一项即终止，不强制跑满 3 轮）：**
+- 分歧已缩小到不影响结论
+- 某一轮没有出现标记为 `[可执行验证]` 或 `[文档证据]` 的新论点（纯修辞循环）
+- 已达 3 轮（硬性上限）
+
+**最终裁决：** 优先采信有外部执行验证的论点；无法验证的分歧，明确告知用户需要人工判断。
+
+**适用：** 性能优化策略、安全边界、复杂并发语义
+
+---
+
+## 注意事项
+
+1. **独立性保护**：Mode B 和 Mode C 第一轮不要把 Claude 答案传给 Codex，避免锚定效应
+2. **沙盒选择**：默认 `read-only`；需要 Codex 执行命令验证时用 `-s workspace-write`，告知用户
+3. **分歧解读**：Codex 给出分歧 ≠ Codex 对，是"需要人工关注"的信号
+4. **禁止递归**：Codex 的结论不再交给 Codex 验证
+5. **真值来源**：运行代码 > 查文档 > 模型共识
+
+---
+
+## 完整 CLI 参考
+
+见 `references/cli-examples.md`（含实际可运行示例）。

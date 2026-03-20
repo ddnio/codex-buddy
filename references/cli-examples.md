@@ -1,96 +1,131 @@
 # Codex CLI 完整示例
 
-## Mode A — Review（代码/分析审查）
+## 常用参数速查
+
+| 参数 | 说明 |
+|------|------|
+| `-C <DIR>` | 工作目录（推荐总是指定） |
+| `-s read-only` | 只读沙盒（默认，推荐） |
+| `-s workspace-write` | 可写工作区（Codex 可修改文件） |
+| `-s danger-full-access` | 无沙盒（危险，慎用） |
+| `--skip-git-repo-check` | 允许在非 Git 目录运行 |
+| `-o <FILE>` | 将最后一条消息写入文件（避免解析终端颜色码） |
+| `--ephemeral` | 不持久化会话文件 |
+| `--json` | 输出 JSONL 格式（适合程序解析） |
+| `-m <MODEL>` | 指定模型（默认 gpt-4o） |
+| `--full-auto` | 低摩擦自动模式（`-a on-request --sandbox workspace-write` 的别名） |
+
+---
+
+## Mode A — Review（审查假设 + 结论）
 
 ```bash
-# 基本审查模式
-codex exec -C /Users/nio/project/github-likes/sub2api \
+CODEX_BIN=$(which codex)
+PROJECT_DIR="/your/project/path"
+OUTPUT_FILE="/tmp/codex-review-$(date +%s).txt"
+
+$CODEX_BIN exec \
+  -C "$PROJECT_DIR" \
   -s read-only \
   --skip-git-repo-check \
-  -o /tmp/codex-review.txt \
-  "以下是 Claude 写的代码，请独立审查，找出 bug、安全问题或设计缺陷：
+  -o "$OUTPUT_FILE" \
+  "请审查以下 Claude 的产出，重点检查：
+1. 结论是否有明显错误
+2. 哪些关键假设没有被验证（特别注意隐含前提）
+3. 忽略了哪些边界条件或风险点
+4. 与你的独立判断有哪些具体分歧
 
-\`\`\`go
-<粘贴 Claude 的代码>
+Claude 的产出：
+\`\`\`
+<粘贴 Claude 的代码或分析>
 \`\`\`
 
-请列出：1) 确定的问题 2) 潜在风险 3) 与 Claude 分析的分歧点"
+请列出：确定问题 / 潜在风险 / 未验证假设 / 与 Claude 的分歧点"
 
-# 读取结果
-cat /tmp/codex-review.txt
+cat "$OUTPUT_FILE"
 ```
 
-## Mode B — Parallel（独立并行回答）
+---
+
+## Mode B — Parallel（完全独立，不受 Claude 答案影响）
 
 ```bash
-# Codex 独立回答，不受 Claude 影响
-codex exec -C /Users/nio/project/github-likes/sub2api \
+CODEX_BIN=$(which codex)
+PROJECT_DIR="/your/project/path"
+OUTPUT_FILE="/tmp/codex-parallel-$(date +%s).txt"
+
+# 不传 Claude 的答案，让 Codex 独立回答
+$CODEX_BIN exec \
+  -C "$PROJECT_DIR" \
   -s read-only \
   --skip-git-repo-check \
-  -o /tmp/codex-parallel.txt \
-  "请独立回答：在 Go 后端中实现支付回调验证，使用 HMAC-SHA256 还是 RSA 公钥验证更好？请给出技术理由。"
+  -o "$OUTPUT_FILE" \
+  "请独立回答以下问题（不参考任何其他模型的意见）：
 
-# 然后 Claude 也独立回答同一问题，最后综合两个视角
-cat /tmp/codex-parallel.txt
+问题：在 Go 后端中实现支付回调验证，使用 HMAC-SHA256 还是 RSA 公钥验证更好？
+
+请给出：1）推荐方案及技术理由 2）另一方案的适用场景 3）你最担心的实现陷阱"
+
+# Claude 同时独立作答，完成后再综合两个视角
+cat "$OUTPUT_FILE"
 ```
 
-## Mode C — Debate（多轮辩论，最多 3 轮）
+---
+
+## Mode C — Debate 第 1 轮（带证据类型标注）
 
 ```bash
-# 第 1 轮：Claude 答案 → Codex 反驳
-codex exec -C /Users/nio/project/github-likes/sub2api \
+$CODEX_BIN exec \
+  -C "$PROJECT_DIR" \
   -s read-only \
   --skip-git-repo-check \
-  -o /tmp/codex-debate-1.txt \
-  "Claude 建议将支付状态存储在 Redis 而不是 PostgreSQL，理由是性能更好。
-请从数据一致性、持久化、故障恢复角度反驳或补充这个观点。"
+  -o /tmp/codex-debate-r1.txt \
+  "当前讨论的问题是：微服务间通信使用 gRPC 还是 REST？
 
-# 查看 SESSION_ID（从输出或配置目录获取）
-ls -t ~/.codex/sessions/ | head -1
+Claude 的立场是：对内部服务间通信推荐 gRPC，理由是类型安全和性能更好。
 
-# 第 2 轮：恢复会话，继续辩论
-SESSION_ID=$(ls -t ~/.codex/sessions/ | head -1 | sed 's/\.json//')
-codex exec resume $SESSION_ID
+请从不同角度反驳或补充这个观点。
+每个论点请标注类型：
+- [可执行验证] 可通过运行代码/benchmark 证实
+- [文档证据] 有明确文档/RFC/规范支持
+- [经验推断] 基于工程经验的合理推断
+- [逻辑假设] 纯逻辑推演，未经验证"
 
-# 或直接恢复最近一次
-codex exec resume --last
+cat /tmp/codex-debate-r1.txt
 ```
 
-## 验证命令检查
+---
+
+## 恢复会话（exec resume）
 
 ```bash
-# 验证 codex 是否可用
-/Users/nio/.nvm/versions/node/v22.21.1/bin/codex --version
+# 列出最近的会话
+ls -t ~/.codex/sessions/ | head -5
 
-# 或通过 PATH（如果已加入）
-codex --version
+# 恢复最近一次会话继续对话
+$CODEX_BIN exec resume --last \
+  -o /tmp/codex-resume.txt \
+  "继续上一轮讨论，针对你提出的第2个论点，Claude 的回应是：<...>"
 
-# 检查会话目录
-ls ~/.codex/sessions/
-
-# 清理临时输出文件
-rm -f /tmp/codex-*.txt
+# 恢复指定会话 ID
+$CODEX_BIN exec resume <SESSION_ID> \
+  -o /tmp/codex-resume.txt \
+  "你的提示"
 ```
 
-## workspace-write 模式（涉及文件操作时）
+---
+
+## 让 Codex 执行命令验证（workspace-write）
+
+需要 Codex 真正跑命令验证时（比如 benchmark、测试），改用 workspace-write：
 
 ```bash
-# 允许 Codex 读写工作区文件（需告知用户）
-codex exec -C /Users/nio/project/github-likes/sub2api \
+$CODEX_BIN exec \
+  -C "$PROJECT_DIR" \
   -s workspace-write \
   --skip-git-repo-check \
-  -o /tmp/codex-write-result.txt \
-  "请检查 backend/internal/repository/ 目录下的文件结构，
-   分析 easypay_provider.go 的接口实现是否符合 provider 接口约定"
+  -o /tmp/codex-verify.txt \
+  "请运行项目的测试套件，然后告诉我哪些测试失败了以及失败原因"
 ```
 
-## 快速验证（--ephemeral，不保存会话）
-
-```bash
-codex exec -C /Users/nio/project/github-likes/sub2api \
-  -s read-only \
-  --skip-git-repo-check \
-  --ephemeral \
-  -o /tmp/codex-quick.txt \
-  "快速检查：Go 的 context.WithTimeout 和 context.WithDeadline 有什么核心区别？"
-```
+⚠️ workspace-write 允许 Codex 修改文件，使用前告知用户。

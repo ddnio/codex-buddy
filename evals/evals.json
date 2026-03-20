@@ -1,0 +1,42 @@
+{
+  "skill_name": "codex-buddy",
+  "description": "测试 codex-buddy skill 是否在正确场景触发，以及三种模式是否被正确选择",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我刚写完一个 Go 服务的 JWT 鉴权中间件，用了 HS256，请帮我检查有没有安全漏洞",
+      "expected_output": "触发 codex-buddy Mode A，让 Codex 独立审查代码的安全假设和边界条件",
+      "tags": ["should-trigger", "mode-a", "security"]
+    },
+    {
+      "id": 2,
+      "prompt": "我在做一个新项目的数据库选型，PostgreSQL 还是 MongoDB，两个都能满足需求，帮我分析一下",
+      "expected_output": "触发 codex-buddy Mode B（Parallel），两个模型独立分析后综合视角",
+      "tags": ["should-trigger", "mode-b", "architecture"]
+    },
+    {
+      "id": 3,
+      "prompt": "帮我写一个 Python 函数，把字符串列表按长度排序",
+      "expected_output": "不触发 codex-buddy，直接完成任务",
+      "tags": ["should-not-trigger", "simple-task"]
+    },
+    {
+      "id": 4,
+      "prompt": "Redis 的 SETNX 命令在分布式锁实现中是否线程安全？我记得是的但不确定",
+      "expected_output": "触发 codex-buddy，事实接近知识截止点且有执行验证价值",
+      "tags": ["should-trigger", "mode-a", "fact-check"]
+    },
+    {
+      "id": 5,
+      "prompt": "把这段 JSON 格式化一下：{\"a\":1,\"b\":2}",
+      "expected_output": "不触发 codex-buddy，纯格式操作",
+      "tags": ["should-not-trigger", "formatting"]
+    },
+    {
+      "id": 6,
+      "prompt": "我准备把生产数据库迁移到新的 schema，已经写好迁移脚本了，能帮我确认一下逻辑没问题吗",
+      "expected_output": "触发 codex-buddy Mode A，高破坏性操作必须 double-check",
+      "tags": ["should-trigger", "mode-a", "destructive-operation"]
+    }
+  ]
+}
