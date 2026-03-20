@@ -185,6 +185,30 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - **Mode A 默认值的锚定风险**：只要 Claude 的结论已进 prompt，Codex 独立性就会被削弱，skill 容易运行成"受控的复述与补充"。应该先判定验证级别，再决定是否用 Mode A。
 
 ### 下轮 Agenda
-- [ ] **Mode A 锚定风险**：重新审视 Mode A 作为默认的适用边界，V2/V3 场景下的 Mode 选择建议（Codex 指出这是比矩阵更根本的问题）
+- [x] **Mode A 锚定风险** → v1.8
+- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] body 结构优化：按 skill-creator 推荐的四段式重新分段
+
+---
+
+## v1.8.0 — 2026-03-20
+
+**主题：Mode A 锚定风险**
+**讨论模式：** Mode A（Claude 先独立方案，Codex 独立审查）
+**完整讨论：** [discussions/2026-03-20-mode-a-anchoring.md](./discussions/2026-03-20-mode-a-anchoring.md)
+
+### 改进内容
+- **工作模式入口**：升级链路改为 Mode 选择器决策表，V2/V3 明确禁用 Mode A 作首轮
+- **Mode A**：`Review（默认）` → `Review（受限，非默认）`，加禁用场景（V2/V3 首轮、方案探索、执行决策前独立判断）
+- **Mode B**：`Parallel（独立并行）` → `Parallel（默认独立模式）`，明确优先使用场景
+- **七条硬规则**：新增 `Mode-A Boundary`（任务目标是获得独立判断时禁用 Mode A；V2/V3 禁用）
+- **Verification Matrix**：末尾加 Mode 约束注释
+- SKILL.md 行数：169 → 177 行（+8 行）
+
+### Codex 独立发现（纳入下轮）
+- **Evidence Packaging Rule（证据打包规则）**：Claude 控制哪些证据传给 Codex，这是比 Mode A 更上游的锚定问题。代码片段 > 代码解释，原始报错 > 错误归因，命令输出 > 结论摘要。即使用了 Mode B，如果传的是"处理过的证据叙事"，异质性还是假的。
+
+### 下轮 Agenda
+- [ ] **Evidence Packaging Rule**：证据打包规则（Codex 指出这是所有 Mode 都面临的上游污染问题，比 Mode A 降级更根本）
 - [ ] evals：运行触发判断测试，基于结果优化 description
 - [ ] body 结构优化：按 skill-creator 推荐的四段式重新分段

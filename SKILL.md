@@ -26,13 +26,18 @@ npm install -g @openai/codex && codex --version
 
 ## 工作模式（升级链路）
 
-**先按验证矩阵确定验证级别，再选 Mode。** Mode 决定 Claude 与 Codex 如何交换观点；验证级别决定谁负责外部验证、是否升级沙盒。顺序不可颠倒，否则容易把 skill 用成"再问一次另一个模型"。
+**先按验证矩阵确定验证级别，再按任务性质选 Mode。** Mode 决定 Claude 与 Codex 如何交换观点；验证级别决定谁负责外部验证、是否升级沙盒。顺序不可颠倒。
 
-先用 Mode A，发现分歧来自方案空间时升 B，仍有不可解冲突时升 C。
+| 场景 | 选 Mode |
+|---|---|
+| 需要独立第一意见（执行决策前、方案探索） | **Mode B**（默认独立模式） |
+| Claude 结论已成型，只做定向审查/找漏项 | Mode A（受限，非默认） |
+| 已出现可检验的核心分歧 | Mode C |
+| V2/V3 影响执行：先定验证动作 | Mode B 辅助验证；**禁用 Mode A 作首轮** |
 
-### Mode A — Review（默认）
+### Mode A — Review（受限，非默认）
 
-Codex **先独立重建判断，再与 Claude 对比**，不只是评论 Claude 的文本：
+Codex 在看见 Claude 结论后做**定向审查**，不是完全独立判断。仅当 Claude 结论已成型且目标是找漏洞/边界条件时使用：
 
 ```bash
 $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
@@ -46,11 +51,12 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 使用 Output Contract 标准输出模板，[与 Claude 对比] 字段必填。"
 ```
 
-**适用：** 代码审查、事实验证、破坏性操作前 double-check
+**适用：** 已成型结论的代码审查、结论补漏、风险盘点
+**禁用：** V2/V3 首轮、方案探索、执行决策前的独立判断
 
-### Mode B — Parallel（独立并行）
+### Mode B — Parallel（默认独立模式）
 
-不传 Claude 答案，各自独立回答后综合：
+不传 Claude 答案，先获得真正独立的 Codex 判断，再由 Claude 综合。优先用于：执行决策前、方案探索、V1/V2 需要避免先验结论污染的场景：
 
 ```bash
 $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
@@ -63,7 +69,7 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 
 Claude 同步独立作答，完成后综合：标出共识、分歧、采用哪个及原因。
 
-**适用：** 架构取舍、技术选型 | **升 C 的信号：** 有可检验的核心分歧
+**适用：** 独立判断、方案探索、执行前判断、架构取舍 | **升 C 的信号：** 有可检验的核心分歧
 
 ### Mode C — Debate（两轮封顶）
 
@@ -94,7 +100,7 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 | **降锚后传**（仅 Mode A） | Claude 的结论/假设 | 字段隔离，要求先独立判断再对比 |
 | **禁止传** | Claude 的推理过程、定性总结、倾向性措辞 | 会锚定 Codex 结论的任何内容 |
 
-六条硬规则：Context Order（问题>证据>背景>Claude观点）/ Context Budget（Claude观点≤25%）/ Verification First（先按验证矩阵定级别，再选 Mode）/ Escalation Rule（按验证矩阵决定是否升级，不得凭感觉停止）/ Output Contract（必须使用下文标准输出模板）/ Abort Rule（证据不足先返回缺失清单）
+七条硬规则：Context Order（问题>证据>背景>Claude观点）/ Context Budget（Claude观点≤25%）/ Verification First（先定验证级别，再选 Mode）/ Mode-A Boundary（任务目标是"获得独立判断"时禁用 Mode A；V2/V3 禁用 Mode A 作首轮）/ Escalation Rule（按验证矩阵决定是否升级）/ Output Contract（必须使用下文标准输出模板）/ Abort Rule（证据不足先返回缺失清单）
 
 ---
 
@@ -110,6 +116,8 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 | V3 | 破坏性/不可逆操作：删数据/生产变更/权限修改 | **必须人工外部验证** | 不得让 Codex 代执行 | **不允许**，只能输出"停止执行 + 缺失验证清单" |
 
 责任规则：① 提出会影响决策的主张的一方先承担最小验证责任；② `workspace-write` 只用于本地可安全完成的 V2 验证；③ V3 验证需要真实外部系统、不可逆副作用时，不升级给 Codex，转交人工。
+
+Mode 约束：V2 影响执行时优先 Mode B + 最小外部验证，不得先 Mode A 再决定是否验证；V3 禁用 Mode A，只能输出"停止执行/移交人工"或用 Mode B 做风险枚举（不传 Claude 结论）。
 
 ---
 
