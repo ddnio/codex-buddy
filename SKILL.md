@@ -203,6 +203,26 @@ $CODEX_BIN exec resume --last \
 
 ---
 
+## 收尾四问（每次运行后必答）
+
+每次 codex-buddy 运行结束，Claude 必须回答以下四个问题。答案嵌在对话里即可，无需持久化文件。
+
+**Q1 Mode Fit：** 这次触发是否合适？A/B/C 选对了吗？
+**Q2 Key Divergence：** 最大分歧点是什么？是结论分歧、假设分歧，还是证据分歧？
+**Q3 Verification Gap：** 是否有本应执行但未执行的外部验证？缺的是什么？
+**Q4 Learning Signal：** 这次协作带来了什么增量价值？
+  → `none` / `confidence_check` / `found_assumption_gap` / `found_mode_error` / `found_fact_risk`
+
+**触发持久化记录的信号**（以上四问中出现任意一项）：
+- Q1：模式选错
+- Q2：存在实质分歧（非仅措辞差异）
+- Q3：存在关键执行验证缺口
+- Q4：`found_*` 类（发现真实问题）
+
+符合时，将简短复盘追加至 `logs/incidents/YYYY-MM-DD-<topic>.md`。
+
+---
+
 ## 注意事项
 
 1. **独立性协议优先**：见上方"Prompt 独立性协议"，字段隔离比措辞更重要
