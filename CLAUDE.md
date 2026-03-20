@@ -12,6 +12,62 @@
 
 ---
 
+## skill-creator 规范（每次改 SKILL.md 必读）
+
+本项目使用 `skill-creator` skill 作为质量标准。**每次修改 SKILL.md 前后都必须对照以下检查清单。**
+
+### SKILL.md 结构规范
+
+```
+codex-buddy/
+├── SKILL.md          ← 必须，含 YAML frontmatter
+├── references/       ← 详细参考文档（按需加载，不自动载入上下文）
+├── scripts/          ← 可执行脚本（确定性/重复任务）
+└── assets/           ← 输出用文件（模板、图标等）
+```
+
+### 三级加载系统（Progressive Disclosure）
+
+| 级别 | 内容 | 自动加载 | 大小限制 |
+|------|------|---------|---------|
+| 1 | frontmatter（name + description） | 始终 | ~100 词 |
+| 2 | SKILL.md body | skill 触发时 | **< 500 行** |
+| 3 | references/ scripts/ | 按需读取 | 无限制 |
+
+**关键原则：** 详细 CLI 示例、大型参考文档放 `references/`，body 只保留核心概念和最精简示例。
+
+### description 规范
+
+- **description 是唯一的触发机制**，所有"何时使用"信息放这里，不放 body
+- 应包含：skill 做什么 + 具体触发场景
+- 适度"pushy"：Claude 倾向于少触发，description 要明确推动触发
+- body 里**不要**重复 description 中已有的触发条件
+
+### 每次改 SKILL.md 后的验证清单
+
+- [ ] `wc -l SKILL.md` < 500 行
+- [ ] description 包含所有触发场景，body 不重复
+- [ ] 详细 CLI 示例在 `references/`，body 只有简化版
+- [ ] `bash scripts/sync-skill.sh` 已执行
+- [ ] 实际调用 skill 验证触发和执行是否符合预期
+
+### 使用 skill-creator 优化 description
+
+当 description 可能不够准确时，运行描述优化：
+
+```bash
+# 在 skill-creator 所在目录运行
+python -m scripts.run_loop \
+  --eval-set evals/trigger-evals.json \
+  --skill-path /Users/nio/project/github/codex-buddy \
+  --model claude-sonnet-4-6 \
+  --max-iterations 5
+```
+
+触发 eval 测试用例见 `evals/evals.json`。
+
+---
+
 ## 文件职责速查
 
 | 文件/目录 | 职责 |
