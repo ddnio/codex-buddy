@@ -49,6 +49,32 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 
 ### 下轮 Agenda
 - [ ] 失败模式记录机制：记录触发原因、发现的问题、哪种模式最有效
-- [ ] Prompt 独立性规范：明确"传什么/不传什么"以避免锚定效应
+- [x] Prompt 独立性规范：明确"传什么/不传什么"以避免锚定效应 → v1.2
 - [ ] 安装说明：补充多平台安装方式（Claude Code / Claude.ai / Codex CLI）
 - [ ] evals：运行触发判断测试，基于结果优化 description
+
+---
+
+## v1.2.0 — 2026-03-20
+
+**主题：Prompt 独立性规范**
+**讨论模式：** Mode B Parallel（Claude + Codex 独立分析后综合）
+**完整讨论：** [discussions/2026-03-20-prompt-independence-contract.md](./discussions/2026-03-20-prompt-independence-contract.md)
+
+### 改进内容
+- **新增章节 `Prompt 独立性协议`**：四层传递规则 + 五条硬性协议
+- **Mode A prompt 重写**：字段隔离结构 + 要求 Codex 先独立重建判断 + Output Contract
+- **Mode B prompt 重写**：结构化模板（任务/硬约束/证据/输出要求）
+- **Mode C 重设计**：C1（双方独立陈述）→ C2（交换反驳），硬性上限改为 2 轮
+- **Abort Rule**：证据不足时先返回"证据不足"，不给结论
+
+### Codex 独立贡献（Claude 未独立发现）
+- Mode C 的"反方审稿模式"问题：现在设计是被动反驳，不是真正 Debate
+- Abort Rule：Codex 建议的关键缺失，Claude 未想到
+- Context Budget 25% 的量化边界
+
+### 下轮 Agenda
+- [ ] 失败模式记录机制：记录触发原因、发现的问题、哪种模式最有效
+- [ ] 安装说明：补充多平台安装方式（Claude Code / Claude.ai / Codex CLI）
+- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] Output Contract 模板：为 Codex 输出定义标准格式（事实/假设/建议/未验证）
