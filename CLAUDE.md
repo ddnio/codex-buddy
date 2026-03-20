@@ -49,7 +49,19 @@ codex-buddy/
 - [ ] description 包含所有触发场景，body 不重复
 - [ ] 详细 CLI 示例在 `references/`，body 只有简化版
 - [ ] `bash scripts/sync-skill.sh` 已执行
-- [ ] 实际调用 skill 验证触发和执行是否符合预期
+- [ ] **Reload 验证（必须执行，每次不得跳过）**：
+
+  ```bash
+  # 1. 确认 sync 完全一致（无输出 = 成功，有输出 = drift，必须重新 sync）
+  diff /Users/nio/project/github/codex-buddy/SKILL.md \
+       ~/.claude/skills/codex-buddy/SKILL.md && echo "✓ in sync" || echo "✗ DRIFT"
+
+  # 2. 确认安装的 description 是预期版本
+  head -9 ~/.claude/skills/codex-buddy/SKILL.md
+  ```
+
+  验证通过条件：`diff` 无输出（完全一致）+ `head` 输出的 description 与本次改动一致。
+  任一失败 → 重新执行 `bash scripts/sync-skill.sh` 并再次验证。
 
 ### 使用 skill-creator 优化 description
 
@@ -216,6 +228,11 @@ cat "$OUTPUT_FILE"
 
 # 2. 同步到 skill 路径
 bash scripts/sync-skill.sh
+
+# 3. Reload 验证（必须，不得跳过）
+diff /Users/nio/project/github/codex-buddy/SKILL.md \
+     ~/.claude/skills/codex-buddy/SKILL.md && echo "✓ in sync" || echo "✗ DRIFT"
+head -9 ~/.claude/skills/codex-buddy/SKILL.md  # 确认 description 是预期版本
 
 # 3. 写讨论记录（见下方格式规范）
 # 文件名：discussions/YYYY-MM-DD-<topic-slug>.md
