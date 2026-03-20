@@ -137,6 +137,29 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - 建议定义：独立结论 / 与 Claude 一致点 / 分歧点 / 已验证 / 未验证
 
 ### 下轮 Agenda
-- [ ] **Output Contract 模板**：为 Codex 输出定义标准格式（优先级最高，Codex 指出这是最大设计缺口）
+- [x] **Output Contract 模板**：为 Codex 输出定义标准格式 → v1.6
 - [ ] evals：运行触发判断测试，基于结果优化 description
 - [ ] body 结构优化：按 skill-creator 推荐的「触发/模式选择/CLI 模板/事后复盘」重新分段
+
+---
+
+## v1.6.0 — 2026-03-20
+
+**主题：Output Contract 标准输出模板**
+**讨论模式：** Mode A（Claude 先独立方案，Codex 独立审查）
+**完整讨论：** [discussions/2026-03-20-output-contract.md](./discussions/2026-03-20-output-contract.md)
+
+### 改进内容
+- **新增 `## Output Contract（标准输出模板）`**：7 字段结构（结论/事实/已验证/假设/建议/未验证/与Claude对比）+ 6 条约束 + 缓冲条款
+- **新增 `## Claude 提取规则`**：字段映射关系，防止 Claude 从自由文本猜结论
+- **`五条硬规则`**：Output Contract 从抽象原则改为指向具体模板章节
+- **Mode A/B/C prompt 更新**：各追加 Output Contract 使用要求，Mode B/C 首轮明确禁止 [与 Claude 对比] 字段
+- SKILL.md 行数：119 → 149 行（+30 行）
+
+### Codex 独立发现（纳入下轮）
+- **验证责任定义太虚**：当前 skill 没有回答"谁来执行验证、何时升级沙盒、何时允许停在未验证"，容易被用成"再问一次另一个模型"而不是真正的异质性校验。需要 `Verification Escalation Matrix`。
+
+### 下轮 Agenda
+- [ ] **Verification Escalation Matrix**：为各类场景定义验证责任（优先级最高，Codex 指出这是根本性设计缺陷）
+- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] body 结构优化：按 skill-creator 推荐的四段式重新分段
