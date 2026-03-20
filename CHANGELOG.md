@@ -74,7 +74,46 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - Context Budget 25% 的量化边界
 
 ### 下轮 Agenda
-- [ ] 失败模式记录机制：记录触发原因、发现的问题、哪种模式最有效
-- [ ] 安装说明：补充多平台安装方式（Claude Code / Claude.ai / Codex CLI）
+- [x] 失败模式记录机制 → v1.3（收尾四问）
+- [x] 安装说明：补充多平台安装方式 → v1.4
+- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] Output Contract 模板：为 Codex 输出定义标准格式（事实/假设/建议/未验证）
+
+---
+
+## v1.3.0 — 2026-03-20
+
+**主题：失败模式记录机制**
+**讨论模式：** Mode C（3轮，Claude 与 Codex 分歧后收敛）
+**完整讨论：** [discussions/2026-03-20-failure-mode-recording.md](./discussions/2026-03-20-failure-mode-recording.md)
+
+### 改进内容
+- 新增"收尾四问"章节：Q1 Mode Fit / Q2 Key Divergence / Q3 Verification Gap / Q4 Learning Signal
+- 明确触发持久化记录的条件（只在发现真实问题时写 incident 文件）
+
+### Codex 独立贡献
+- 三问升四问：加入 Learning Signal，能区分"确认信心"与"真正发现盲点"
+
+---
+
+## v1.4.0 — 2026-03-20
+
+**主题：安装说明多平台**
+**讨论模式：** Mode B（并行独立）
+**完整讨论：** [discussions/2026-03-20-install-multiplatform.md](./discussions/2026-03-20-install-multiplatform.md)
+
+### 改进内容（README.md）
+- Codex CLI 从"其他平台"升为独立安装章节
+- 统一 clone 路径，补 `mkdir -p`，用 `"$(pwd)"` 替代拼接路径
+- 符号链接 vs 直接复制：说明区别和适用场景
+- 新增"验证安装"章节
+- 新增"更新"章节
+- 删除未经验证的 Claude.ai `.skill` 说法
+
+### Codex 独立发现（纳入下轮）
+- description frontmatter 约 750 字符且混入 workflow 说明，违反 skill-creator 规范。应压缩为一句纯触发条件，详细规则留正文
+
+### 下轮 Agenda
+- [ ] description 瘦身：压缩 frontmatter 为一句触发条件，正文重新分段
 - [ ] evals：运行触发判断测试，基于结果优化 description
 - [ ] Output Contract 模板：为 Codex 输出定义标准格式（事实/假设/建议/未验证）
