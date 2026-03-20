@@ -114,6 +114,29 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - description frontmatter 约 750 字符且混入 workflow 说明，违反 skill-creator 规范。应压缩为一句纯触发条件，详细规则留正文
 
 ### 下轮 Agenda
-- [ ] description 瘦身：压缩 frontmatter 为一句触发条件，正文重新分段
+- [x] description 瘦身：压缩 frontmatter 为一句触发条件，正文重新分段 → v1.5
 - [ ] evals：运行触发判断测试，基于结果优化 description
 - [ ] Output Contract 模板：为 Codex 输出定义标准格式（事实/假设/建议/未验证）
+
+---
+
+## v1.5.0 — 2026-03-20
+
+**主题：description 瘦身**
+**讨论模式：** Mode A（Claude 先独立方案，Codex 独立审查）
+**完整讨论：** [discussions/2026-03-20-description-trim.md](./discussions/2026-03-20-description-trim.md)
+
+### 改进内容
+- description 从 ~750 字符压缩至 ~280 字符，删除 workflow 解释
+- 保留 5 个核心触发信号：代码审查 / 架构决策 / 知识截止点 / 破坏性操作 / 流畅度警告
+- 措辞改为 action-oriented："reviewing code you just wrote"（不是"code you just wrote and want reviewed"）
+- 符合 skill-creator 规范：description 只描述"何时触发"，策略规则留正文
+
+### Codex 独立发现（纳入下轮）
+- Body 缺少 **Output Contract**：各 Mode 的 Codex 输出没有统一格式约定，是当前最大设计缺口
+- 建议定义：独立结论 / 与 Claude 一致点 / 分歧点 / 已验证 / 未验证
+
+### 下轮 Agenda
+- [ ] **Output Contract 模板**：为 Codex 输出定义标准格式（优先级最高，Codex 指出这是最大设计缺口）
+- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] body 结构优化：按 skill-creator 推荐的「触发/模式选择/CLI 模板/事后复盘」重新分段

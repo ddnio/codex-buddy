@@ -1,12 +1,11 @@
 ---
 name: codex-buddy
 description: >
-  Use when you need independent cross-model validation via Codex CLI (GPT-4o).
-  Trigger on: code you just wrote and want reviewed, high-stakes architecture decisions
-  with multiple valid approaches, facts near your knowledge cutoff, destructive operations
-  before execution, or any time your answer feels suspiciously smooth and confident.
-  The more certain Claude feels, the more this skill should trigger — fluency is the
-  primary failure signal, not uncertainty.
+  Use to get an independent Codex (GPT-4o) check before trusting your own answer.
+  Trigger on: reviewing code you just wrote, high-stakes architecture choices with
+  multiple valid options, facts near your knowledge cutoff, and any destructive or
+  irreversible operation. If your answer feels unusually fluent, complete, or confident,
+  you should use this skill — fluency is the primary failure signal, not uncertainty.
 ---
 
 # codex-buddy
