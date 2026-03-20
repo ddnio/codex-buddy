@@ -160,6 +160,31 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - **验证责任定义太虚**：当前 skill 没有回答"谁来执行验证、何时升级沙盒、何时允许停在未验证"，容易被用成"再问一次另一个模型"而不是真正的异质性校验。需要 `Verification Escalation Matrix`。
 
 ### 下轮 Agenda
-- [ ] **Verification Escalation Matrix**：为各类场景定义验证责任（优先级最高，Codex 指出这是根本性设计缺陷）
+- [x] **Verification Escalation Matrix** → v1.7
+- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] body 结构优化：按 skill-creator 推荐的四段式重新分段
+
+---
+
+## v1.7.0 — 2026-03-20
+
+**主题：Verification Escalation Matrix（验证责任矩阵）**
+**讨论模式：** Mode A（Claude 先独立方案，Codex 独立审查）
+**完整讨论：** [discussions/2026-03-20-verification-escalation-matrix.md](./discussions/2026-03-20-verification-escalation-matrix.md)
+
+### 改进内容
+- **新增 `## Verification Escalation Matrix`**：V0-V3 四级验证矩阵 + 3 条责任规则
+- **工作模式入口**：加"先按验证矩阵确定验证级别，再选 Mode"提示（防止 skill 退化为纯语言模型对比）
+- **六条硬规则**：新增 `Verification First`（先定验证级别，再选 Mode）
+- **Output Contract 模板**：顶部加 `[验证级别][验证责任][升级决策]` 三字段
+- **约束 ⑥**：V2/V3 且无 `已验证` 时 `升级决策` 不得为 `stay-read-only`
+- **沙盒说明**：从提示升级为规则，V3 明确转交人工
+- SKILL.md 行数：149 → 169 行（+20 行）
+
+### Codex 独立发现（纳入下轮）
+- **Mode A 默认值的锚定风险**：只要 Claude 的结论已进 prompt，Codex 独立性就会被削弱，skill 容易运行成"受控的复述与补充"。应该先判定验证级别，再决定是否用 Mode A。
+
+### 下轮 Agenda
+- [ ] **Mode A 锚定风险**：重新审视 Mode A 作为默认的适用边界，V2/V3 场景下的 Mode 选择建议（Codex 指出这是比矩阵更根本的问题）
 - [ ] evals：运行触发判断测试，基于结果优化 description
 - [ ] body 结构优化：按 skill-creator 推荐的四段式重新分段
