@@ -209,6 +209,32 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - **Evidence Packaging Rule（证据打包规则）**：Claude 控制哪些证据传给 Codex，这是比 Mode A 更上游的锚定问题。代码片段 > 代码解释，原始报错 > 错误归因，命令输出 > 结论摘要。即使用了 Mode B，如果传的是"处理过的证据叙事"，异质性还是假的。
 
 ### 下轮 Agenda
+- [x] **description 主轴重写 + 收尾四问改条件触发 + Red Flags** → v1.9
 - [ ] **Evidence Packaging Rule**：证据打包规则（Codex 指出这是所有 Mode 都面临的上游污染问题，比 Mode A 降级更根本）
-- [ ] evals：运行触发判断测试，基于结果优化 description
+- [ ] evals：运行触发判断测试，验证新 description 在 meta 场景的召回率
 - [ ] body 结构优化：按 skill-creator 推荐的四段式重新分段
+
+---
+
+## v1.9.0 — 2026-03-21
+
+**主题：description 主轴重写 + 收尾改为条件触发 + Red Flags**
+**讨论模式：** Mode B × 2（触发失败根因分析 + superpowers 设计对比）
+**完整讨论：** [discussions/2026-03-21-description-trigger-redesign.md](./discussions/2026-03-21-description-trigger-redesign.md)
+
+### 改进内容
+- **description 主轴改变**：从"内省信号"（before trusting your own answer / fluency）改为"任务信号"（needs independent second-model verification）
+- **meta 场景显式化**：加入"when asked to assess this skill itself or explain why it did or did not trigger"，覆盖之前两次漏触发的盲区
+- **fluency 从 description 降级**：不再作为触发条件（后验信号，触发时刻根本不可用）；设计哲学保留在正文
+- **收尾四问 → 条件触发**：三项均无（判断未变/无验证缺口/无污染风险）则跳过，避免模板式填空
+- **新增 Red Flags 章节**：4 条合理化借口 + 对应现实，防止执行层漏触发
+
+### Codex 独立贡献（Claude 未独立发现）
+- "后验 vs 前验"的诊断：`fluency` 在 description 匹配时刻根本不存在，是架构层面错误不只是措辞问题
+- "封闭枚举"问题：枚举越强，未枚举的近邻场景越容易漏
+- `"If being wrong would be costly"` 总兜底公式
+
+### 下轮 Agenda
+- [ ] **Evidence Packaging Rule**：证据打包规则
+- [ ] evals：验证新 description 在 meta 场景、隐式 paraphrase 场景的召回率
+- [ ] body 结构优化
