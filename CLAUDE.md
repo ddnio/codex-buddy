@@ -1,88 +1,71 @@
 # CLAUDE.md
 
-> 你是在 codex-buddy 仓库中工作的 Claude Code 代理。在做任何操作前读完本文件。
+> AI 代理入口。必须先读完本文件再开始任何操作。
+> 完整迭代手册见 `references/WORKFLOW.md`。
 
 ---
 
 ## 仓库目标
 
-维护并持续改进 `codex-buddy`——一个让 Claude 与 Codex (GPT-4o) 协作进行跨模型验证的 Claude Code skill。
+维护并改进 `codex-buddy`——让 Claude 与 Codex (GPT-4o) 协作进行跨模型验证的 Claude Code skill。
 
-**唯一真正的产物是 `SKILL.md`**，其他所有文件都服务于它的质量。
+**唯一产物是 `SKILL.md`**，其他所有文件服务于它的质量。
 
-### 大方向：不要偏离
-
-这个 skill 的核心价值是**通过大模型间的真实对话减少幻觉**——让 GPT-4o 独立看一遍，发现 Claude 流畅合理化掉的问题。
-
-每次迭代前自问：**这个改动让两个模型的对话更有效，还是只是给流程加了更多规范层？** 只有前者才是对的方向。规范层只在它直接服务于"有效对话"时才有意义。
+每次迭代前必问：**这个改动让两个模型的对话更有效，还是只是加规范层？** 只有前者才做。
 
 ---
 
-## skill-creator 规范（每次改 SKILL.md 必读）
-
-本项目使用 `skill-creator` skill 作为质量标准。**每次修改 SKILL.md 前后都必须对照以下检查清单。**
-
-### SKILL.md 结构规范
+## 启动顺序（必须遵守，不能跳过）
 
 ```
-codex-buddy/
-├── SKILL.md          ← 必须，含 YAML frontmatter
-├── references/       ← 详细参考文档（按需加载，不自动载入上下文）
-├── scripts/          ← 可执行脚本（确定性/重复任务）
-└── assets/           ← 输出用文件（模板、图标等）
+1. 读 STATUS.md → 确认 health_status 和 next_safe_step
+2. 运行 bash scripts/verify-repo.sh → 读取全部输出
+3. verify 失败 → 进入 triage 模式（修复 confirmed_failures），不继续迭代
+4. verify 通过 → 按 STATUS.md 的 next_safe_step 开始迭代
 ```
 
-### 三级加载系统（Progressive Disclosure）
+**verify 失败 = triage 模式，不是终止迭代。**
 
-| 级别 | 内容 | 自动加载 | 大小限制 |
-|------|------|---------|---------|
-| 1 | frontmatter（name + description） | 始终 | ~100 词 |
-| 2 | SKILL.md body | skill 触发时 | **< 500 行** |
-| 3 | references/ scripts/ | 按需读取 | 无限制 |
+---
 
-**关键原则：** 详细 CLI 示例、大型参考文档放 `references/`，body 只保留核心概念和最精简示例。
+## 单一真相源
 
-### description 规范
+| 内容 | 来源 |
+|------|------|
+| skill 当前内容 | `SKILL.md` |
+| 项目状态 / 失败记录 | `STATUS.md` |
+| 历史迭代记录 | `CHANGELOG.md`（只读历史，不作调度源） |
+| 完整迭代流程 | `references/WORKFLOW.md` |
+| CLI 示例 | `references/cli-examples.md` |
 
-- **description 是唯一的触发机制**，所有"何时使用"信息放这里，不放 body
-- 应包含：skill 做什么 + 具体触发场景
-- 适度"pushy"：Claude 倾向于少触发，description 要明确推动触发
-- body 里**不要**重复 description 中已有的触发条件
+冲突时优先级：`SKILL.md` > `STATUS.md` > `CLAUDE.md` > 其他
 
-### 每次改 SKILL.md 后的验证清单
+---
 
-- [ ] `wc -l SKILL.md` < 500 行
-- [ ] description 包含所有触发场景，body 不重复
-- [ ] 详细 CLI 示例在 `references/`，body 只有简化版
-- [ ] `bash scripts/sync-skill.sh` 已执行
-- [ ] **Reload 验证（必须执行，每次不得跳过）**：
+## 硬性约束（不可违反）
 
-  ```bash
-  # 1. 确认 sync 完全一致（无输出 = 成功，有输出 = drift，必须重新 sync）
-  diff /Users/nio/project/github/codex-buddy/SKILL.md \
-       ~/.claude/skills/codex-buddy/SKILL.md && echo "✓ in sync" || echo "✗ DRIFT"
+- `SKILL.md` 体积 < 150 行
+- description 是唯一触发入口，body 不重复触发条件
+- Mode A / B / C 名称和升级链路不可破坏
+- 传递原则：不传 Claude 的推理过程和倾向性措辞
+- 修改 SKILL.md 后必须执行 `bash scripts/sync-skill.sh` 并做 reload 验证
+- `discussions/` 里的原始输出不可裁剪或删改
 
-  # 2. 确认安装的 description 是预期版本
-  head -9 ~/.claude/skills/codex-buddy/SKILL.md
-  ```
+---
 
-  验证通过条件：`diff` 无输出（完全一致）+ `head` 输出的 description 与本次改动一致。
-  任一失败 → 重新执行 `bash scripts/sync-skill.sh` 并再次验证。
-
-### 使用 skill-creator 优化 description
-
-当 description 可能不够准确时，运行描述优化：
+## Reload 验证（改 SKILL.md 后必做）
 
 ```bash
-# 在 skill-creator 所在目录运行
-python -m scripts.run_loop \
-  --eval-set evals/trigger-evals.json \
-  --skill-path /Users/nio/project/github/codex-buddy \
-  --model claude-sonnet-4-6 \
-  --max-iterations 5
+bash scripts/sync-skill.sh
+diff "$(pwd)/SKILL.md" ~/.claude/skills/codex-buddy/SKILL.md && echo "✓ in sync" || echo "✗ DRIFT"
+head -9 ~/.claude/skills/codex-buddy/SKILL.md
 ```
 
-触发 eval 测试用例见 `evals/evals.json`。
+---
+
+## No-op 轮次
+
+如果本轮 Codex 调用没有新发现，**显式**记录：`本轮 no-op，理由：[具体理由]`。不需要编造增量发现。
 
 ---
 
@@ -90,259 +73,13 @@ python -m scripts.run_loop \
 
 | 文件/目录 | 职责 |
 |-----------|------|
-| `SKILL.md` | skill 主体，唯一需要对外发布的文件 |
-| `CHANGELOG.md` | 版本记录 + 下轮迭代 Agenda（`[ ]` 列表） |
+| `SKILL.md` | skill 主体，唯一对外发布的文件 |
+| `STATUS.md` | 当前仓库状态快照（调度源） |
+| `CHANGELOG.md` | 历史版本记录（只读参考） |
 | `discussions/` | 每轮 Claude+Codex 完整讨论记录，不可删改 |
 | `evals/evals.json` | 触发判断测试用例 |
-| `references/cli-examples.md` | 完整 CLI 用法示例（供 SKILL.md 引用） |
+| `references/WORKFLOW.md` | 完整迭代手册（工具、流程、格式规范） |
+| `references/cli-examples.md` | 完整 CLI 用法示例 |
 | `scripts/sync-skill.sh` | 同步 SKILL.md 到本地 skill 安装路径 |
+| `scripts/verify-repo.sh` | 仓库健康检查（每轮启动前运行） |
 | `logs/incidents/` | 高价值失败案例复盘（可选，按需创建） |
-
----
-
-## 工具使用
-
-### 1. Codex CLI
-
-调用方式：
-
-```bash
-CODEX_BIN=$(which codex)   # 不要硬编码路径
-OUTPUT_FILE="/tmp/codex-$(date +%s).txt"
-
-$CODEX_BIN exec \
-  -C <工作目录> \
-  -s read-only \
-  --skip-git-repo-check \
-  -o "$OUTPUT_FILE" \
-  "<prompt>"
-
-cat "$OUTPUT_FILE"
-```
-
-关键参数：
-
-| 参数 | 用途 |
-|------|------|
-| `-C <DIR>` | 工作目录，必须指定 |
-| `-s read-only` | 只读沙盒（默认） |
-| `-s workspace-write` | 允许 Codex 写文件（需告知用户） |
-| `--skip-git-repo-check` | 非 git 目录也能运行 |
-| `-o <FILE>` | 将最后一条消息写入文件（避免终端颜色码干扰） |
-| `--ephemeral` | 不持久化会话 |
-
-恢复上一次会话继续对话：
-
-```bash
-$CODEX_BIN exec resume --last -o "$OUTPUT_FILE" "<继续的 prompt>"
-```
-
-**Prompt 独立性原则（重要）：**
-- Mode B / Mode C 第一轮：不传 Claude 的答案，只传原始问题 + 客观证据
-- Mode A：先传任务和证据，Claude 观点放在最后单独区块，并要求 Codex 先独立判断再对比
-- 禁止传入：Claude 的推理过程、定性结论、倾向性措辞
-
----
-
-### 2. sync-skill.sh
-
-每次修改 `SKILL.md` 后必须执行，将文件同步到本地 skill 安装路径（即 reload）：
-
-```bash
-bash scripts/sync-skill.sh
-# 效果：复制 ./SKILL.md → ~/.claude/skills/codex-buddy/SKILL.md
-```
-
----
-
-### 3. git 工作流
-
-```bash
-# 每轮迭代完成后
-git add -A
-git commit -m "feat: v<版本号> - <主题关键词> (Claude+Codex 第N轮迭代)
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-git push
-```
-
-提交规范：
-- `feat:` 改进 SKILL.md 内容
-- `docs:` 改进文档（README、CLAUDE.md、discussions 等）
-- `iter:` cron 自动触发的迭代提交
-
----
-
-### 4. 30 分钟迭代 Cron（session-only）
-
-Cron 在 Claude Code 会话中运行，退出后消失。每轮自动执行完整迭代流程（见下方"迭代流程"）。
-
-重建 cron 时告诉 Claude："帮我重启 codex-buddy 的 30 分钟迭代 cron"，它会读取 CLAUDE.md 中的迭代流程规范并按此设置。
-
----
-
-## 迭代流程（每轮标准步骤）
-
-### Step 1：确定主题
-
-读取 `CHANGELOG.md` 中最新版本的"下轮 Agenda"，取第一个 `[ ]` 未完成项。
-
-### Step 1.5：改动前必答三问（不能跳过）
-
-在 Step 2 开始前，必须明确回答：
-
-1. **这个改动让 skill 更容易用，还是更复杂？** 只有"更容易"或"同等复杂但更准确"才继续。
-2. **一个真实 Claude 在真实对话中会 follow 这条新规则吗？** 如果不确定，不加。
-3. **如果 Codex 的输出不完全符合新规范，用户还能从中提取有用信息吗？** 如果不能，这条规则是脆的，不加。
-
-三问有任何一个答案是"不"→ 重新考虑主题，或缩小改动范围。
-
-### Step 2：Claude 独立分析
-
-针对该主题，Claude 先给出具体方案（写清楚 SKILL.md 应改哪里、怎么改）。**不要先看 Codex 的答案。**
-
-### Step 3：Codex 独立分析
-
-不传 Claude 的方案，调用 Codex：
-
-```bash
-CODEX_BIN=$(which codex)
-TIMESTAMP=$(date +%Y%m%d-%H%M)
-OUTPUT_FILE="/tmp/codex-iter-${TIMESTAMP}.txt"
-
-$CODEX_BIN exec \
-  -C /Users/nio/project/github/codex-buddy \
-  -s read-only \
-  --skip-git-repo-check \
-  -o "$OUTPUT_FILE" \
-  "你是 codex-buddy skill 的协作设计者。
-
-当前 SKILL.md 内容：
-$(cat SKILL.md)
-
-本轮主题：<主题>
-
-请给出：
-1. 针对这个主题，SKILL.md 具体应该改什么（改动前/改动后对比）
-2. 这个改动可能引入的新问题
-3. 你对当前 skill 最大设计缺陷的独立判断（不限于本轮主题）"
-
-cat "$OUTPUT_FILE"
-```
-
-### Step 4：综合两个视角
-
-对比 Claude 和 Codex 的方案：
-- 共识点 → 直接采纳
-- 分歧点 → 选择并说明理由
-- Codex 独立发现的新问题 → 优先考虑纳入
-
-### Step 5：更新文件
-
-```bash
-# 1. 修改 SKILL.md（用 Edit 工具）
-
-# 2. 同步到 skill 路径
-bash scripts/sync-skill.sh
-
-# 3. Reload 验证（必须，不得跳过）
-diff /Users/nio/project/github/codex-buddy/SKILL.md \
-     ~/.claude/skills/codex-buddy/SKILL.md && echo "✓ in sync" || echo "✗ DRIFT"
-head -9 ~/.claude/skills/codex-buddy/SKILL.md  # 确认 description 是预期版本
-
-# 3. 写讨论记录（见下方格式规范）
-# 文件名：discussions/YYYY-MM-DD-<topic-slug>.md
-
-# 4. 更新 CHANGELOG.md（追加新版本，更新 Agenda 状态）
-```
-
-### Step 6：提交推送
-
-```bash
-git add -A
-git commit -m "feat: v<版本> - <主题> (Claude+Codex 第N轮迭代)
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-git push
-```
-
----
-
-## discussions/ 格式规范
-
-文件名：`YYYY-MM-DD-<topic-slug>.md`
-
-必须包含以下结构（参考已有文件）：
-
-```markdown
-# 讨论：<主题>
-
-**日期：** | **模式：** Mode A/B/C | **结果：** 收敛/分歧
-
----
-
-## 话题
-<问题背景>
-
----
-
-## 第一轮：各自开场
-
-**Claude：**
-> <Claude 的独立观点原文>
-
-**Codex：**
-> <Codex 的原始输出>
-
----
-
-## 第N轮：<轮次描述>
-...
-
----
-
-## 共识与分歧
-
-| 点 | Claude | Codex | 结论 |
-|----|--------|-------|------|
-...
-
----
-
-## 对 SKILL.md 的改动
-<具体改了什么>
-
----
-
-## 独立性验证（每轮必填，不得省略）
-
-- [ ] Codex 在 Claude 给出方案后才被调用（Step 2 先于 Step 3）
-- **Codex 发现了 Claude 没有提出的什么：** [具体写，不能写"无"，必须有实质内容]
-- **Claude 因为 Codex 的输出改变了什么：** [具体写，或写"未改变，理由：XXX"]
-- **本轮对话是否真实有效：** [Codex 回应是否包含 Claude 没想到的角度？如果 Codex 输出只是复述 Claude 的方案，标注为"低效对话"]
-```
-
-**关键要求：Codex 原始输出必须完整保留，不可裁剪或意译。独立性验证节是判断本轮对话是否有价值的唯一标准——如果"Codex 发现了什么"写不出实质内容，说明本轮 Codex 调用没有产生增量价值。**
-
----
-
-## 修改 SKILL.md 的禁区
-
-不能破坏：
-- 三种模式的名称（Mode A / B / C）及升级链路关系
-- 传递原则：不传 Claude 的推理过程和倾向性措辞
-- 收尾四问结构（Q1–Q4）
-- description 的触发机制（description 是唯一触发入口）
-
-不能做：
-- 增加"规范层"而不验证实际可执行性
-- 让 SKILL.md 超过 150 行（超过说明在加用不到的东西）
-
----
-
-## 安全边界
-
-- `SKILL.md` 里不写绝对路径，用 `$(which codex)` 代替硬编码
-- 不提交私有环境信息、token、用户名
-- `discussions/` 里的 Codex 原始输出不可删改
-- 冲突时优先级：`SKILL.md` > `CHANGELOG.md` > 其他文档

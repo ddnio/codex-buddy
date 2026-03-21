@@ -1,0 +1,134 @@
+#!/bin/bash
+# verify-repo.sh — codex-buddy 仓库健康检查
+#
+# 用途：每轮迭代前运行，检测已知失败模式
+# 失败时：打印所有问题后以退出码 1 退出（= 进入 triage 模式，不是终止迭代）
+# 成功时：退出码 0
+
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+FAIL=0
+
+fail() { echo "  ✗ $1"; FAIL=1; }
+pass() { echo "  ✓ $1"; }
+
+echo "=== verify-repo.sh ==="
+echo "repo: $REPO_DIR"
+echo ""
+
+# ── 1. 关键文件存在性 ────────────────────────────────────────
+echo "── 关键文件 ──"
+for f in \
+  SKILL.md \
+  CLAUDE.md \
+  CHANGELOG.md \
+  CONTRIBUTING.md \
+  README.md \
+  STATUS.md \
+  references/cli-examples.md \
+  references/WORKFLOW.md \
+  scripts/sync-skill.sh \
+  scripts/verify-repo.sh; do
+  [ -f "$REPO_DIR/$f" ] && pass "$f" || fail "$f MISSING"
+done
+echo ""
+
+# ── 2. SKILL.md 结构チェック ─────────────────────────────────
+echo "── SKILL.md 结构 ──"
+SKILL="$REPO_DIR/SKILL.md"
+SKILL_LINES=$(wc -l < "$SKILL")
+
+if [ "$SKILL_LINES" -lt 150 ]; then
+  pass "SKILL.md 行数 ${SKILL_LINES} < 150"
+else
+  fail "SKILL.md 行数 ${SKILL_LINES} >= 150（规范上限）"
+fi
+
+# frontmatter
+if head -5 "$SKILL" | grep -q "name: codex-buddy"; then
+  pass "SKILL.md frontmatter 含 name: codex-buddy"
+else
+  fail "SKILL.md frontmatter 缺少 name: codex-buddy"
+fi
+
+# 关键段落各出现至少一次
+for section in "Mode B" "Mode A" "传递原则" "升级 / 停止规则" "收尾"; do
+  count=$(grep -c "$section" "$SKILL" 2>/dev/null || echo 0)
+  if [ "$count" -ge 1 ]; then
+    pass "SKILL.md 含段落 '$section'"
+  else
+    fail "SKILL.md 缺少段落 '$section'"
+  fi
+done
+echo ""
+
+# ── 3. 已安装 skill 漂移检查 ─────────────────────────────────
+echo "── Skill 安装漂移 ──"
+INSTALLED="$HOME/.claude/skills/codex-buddy/SKILL.md"
+if [ -f "$INSTALLED" ]; then
+  if diff -q "$SKILL" "$INSTALLED" > /dev/null 2>&1; then
+    pass "已安装 skill 与仓库 SKILL.md 一致"
+  else
+    fail "已安装 skill 与仓库 SKILL.md 不一致 → 运行: bash scripts/sync-skill.sh"
+  fi
+else
+  fail "未找到已安装 skill: $INSTALLED"
+fi
+echo ""
+
+# ── 4. 已知失效引用检查 ──────────────────────────────────────
+echo "── 失效引用 ──"
+
+# CONTRIBUTING.md: docs/automation.md 不存在
+if grep -q "docs/automation\.md" "$REPO_DIR/CONTRIBUTING.md" 2>/dev/null; then
+  fail "CONTRIBUTING.md 引用了不存在的 docs/automation.md"
+else
+  pass "CONTRIBUTING.md: 无 docs/automation.md 引用"
+fi
+
+# CLAUDE.md: evals/trigger-evals.json 不存在（正确文件是 evals/evals.json）
+if grep -q "trigger-evals\.json" "$REPO_DIR/CLAUDE.md" 2>/dev/null; then
+  fail "CLAUDE.md 引用了不存在的 evals/trigger-evals.json（正确: evals/evals.json）"
+else
+  pass "CLAUDE.md: 无 trigger-evals.json 引用"
+fi
+
+# SKILL.md 引用 references/cli-examples.md
+if grep -q "references/cli-examples\.md" "$SKILL" 2>/dev/null; then
+  if [ -f "$REPO_DIR/references/cli-examples.md" ]; then
+    pass "SKILL.md 引用的 references/cli-examples.md 存在"
+  else
+    fail "SKILL.md 引用了不存在的 references/cli-examples.md"
+  fi
+fi
+echo ""
+
+# ── 5. 可移植性：scripts/ 不含私有绝对路径 ──────────────────
+echo "── 可移植性 ──"
+if grep -qn "/Users/" "$REPO_DIR/scripts/sync-skill.sh" 2>/dev/null; then
+  fail "scripts/sync-skill.sh 含硬编码绝对路径 /Users/..."
+else
+  pass "scripts/sync-skill.sh: 无硬编码绝对路径"
+fi
+echo ""
+
+# ── 6. Git diff 预览（SKILL.md 和控制文件） ──────────────────
+echo "── 近期改动预览 ──"
+TRACKED_CHANGES=$(git -C "$REPO_DIR" diff --name-only -- SKILL.md CLAUDE.md STATUS.md "references/WORKFLOW.md" 2>/dev/null)
+if [ -z "$TRACKED_CHANGES" ]; then
+  echo "  (SKILL.md 等核心文件无未提交改动)"
+else
+  echo "  已修改: $TRACKED_CHANGES"
+  git -C "$REPO_DIR" diff --stat -- SKILL.md CLAUDE.md STATUS.md "references/WORKFLOW.md" 2>/dev/null
+fi
+echo ""
+
+# ── 最终结果 ─────────────────────────────────────────────────
+if [ "$FAIL" -eq 0 ]; then
+  echo "✅ PASSED — 仓库健康，可以继续迭代"
+  exit 0
+else
+  echo "❌ FAILED — 发现问题，进入 triage 模式"
+  echo "   → 下一步：读 STATUS.md，修复上方列出的 ✗ 项，再重新运行 verify-repo.sh"
+  echo "   → verify 失败 = triage，不是终止迭代"
+  exit 1
+fi

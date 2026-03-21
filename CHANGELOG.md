@@ -235,6 +235,34 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - `"If being wrong would be costly"` 总兜底公式
 
 ### 下轮 Agenda
+- [x] **开发机制重构**：verify-repo.sh + STATUS.md + CLAUDE.md bootstrap → v1.10
 - [ ] **Evidence Packaging Rule**：证据打包规则
 - [ ] evals：验证新 description 在 meta 场景、隐式 paraphrase 场景的召回率
-- [ ] body 结构优化
+
+---
+
+## v1.10.0 — 2026-03-21
+
+**主题：开发机制重构——确定性裁判 + failure-first 迭代入口 + CLAUDE.md bootstrap**
+**讨论模式：** Mode B（Claude 写计划，Codex 独立 review，2 轮收敛）
+**完整讨论：** [discussions/2026-03-21-dev-mechanism-refactor.md](./discussions/2026-03-21-dev-mechanism-refactor.md)
+
+### 改进内容
+- **新增 `scripts/verify-repo.sh`**：引用检查（所有关键文档）+ SKILL.md 结构检查 + 已安装 skill 漂移检查 + 可移植性检查 + 失败行为说明（triage 模式，不是终止）
+- **新增 `STATUS.md`**：机器可读的固定 schema（skill_version / health_status / confirmed_failures / root_cause_hypotheses / validation_queue / deferred_items / next_safe_step）
+- **新增 `references/WORKFLOW.md`**：从 CLAUDE.md 迁入完整迭代手册（工具、流程、格式规范、安全边界）
+- **重写 `CLAUDE.md`**：压缩至 bootstrap 层（~85 行），明确启动顺序 + 单一真相源 + verify 失败语义 + no-op 允许
+- **修复 `scripts/sync-skill.sh`**：去除硬编码 `/Users/nio` 绝对路径，改用 `$HOME` 和相对路径
+- **修复 `CONTRIBUTING.md`**：删除对不存在的 `docs/automation.md` 的引用，改为 `references/WORKFLOW.md`
+- **修复 `README.md`**：Mode B 改为默认（升级链路顺序更新），fluency 从触发条件改为 red flag，新增 meta 场景触发
+
+### Codex 独立贡献（Claude 未独立发现）
+- "failure-first 退化成 failure-stop"的架构诊断：verify 失败分支语义缺失是整个机制的致命漏洞
+- skill 漂移检查是 silent fallback 的主要来源，原计划完全漏掉
+- STATUS.md 的 CHANGELOG.md 双轨调度冲突：必须明确 CHANGELOG 降级为只读历史
+- no-op 修复必须与 discussion 模板联动（不然规则对齐但模板还在强制编造发现）
+
+### 下轮 Agenda
+- [ ] **Evidence Packaging Rule**：证据打包规则（上游污染问题，比 Mode A 降级更根本）
+- [ ] evals：增加 meta/paraphrase/no-change 回归测试用例
+- [ ] 恢复 Output Contract + Verification Escalation Matrix（v1.8→v1.9 hard reset 时丢失）
