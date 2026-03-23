@@ -21,7 +21,7 @@
 1. 读 STATUS.md → 确认 health_status 和 next_safe_step
 2. 运行 bash scripts/verify-repo.sh → 读取全部输出
 3. verify 失败 → 进入 triage 模式（修复 confirmed_failures），不继续迭代
-4. verify 通过 → 按 STATUS.md 的 next_safe_step 开始迭代
+4. verify 通过 → 运行 WORKFLOW.md Step 1 自主选题（STATUS.md selected_item 若已填则直接用）
 ```
 
 **verify 失败 = triage 模式，不是终止迭代。**
