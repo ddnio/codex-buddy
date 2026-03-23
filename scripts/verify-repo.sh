@@ -122,6 +122,45 @@ else
 fi
 echo ""
 
+# ── 7. CHANGELOG 引用完整性 ────────────────────────────────────
+echo "── CHANGELOG 引用完整性 ──"
+while IFS= read -r f; do
+  if [ -f "$REPO_DIR/$f" ]; then
+    pass "引用存在: $f"
+  else
+    fail "CHANGELOG 引用了不存在的文件: $f"
+  fi
+done < <(grep -oE 'discussions/[^)]+\.md' "$REPO_DIR/CHANGELOG.md")
+echo ""
+
+# ── 8. evals.json id 连续性 ───────────────────────────────────
+echo "── evals.json id 连续性 ──"
+if command -v jq &>/dev/null; then
+  MAX=$(jq '[.evals[].id] | max' "$REPO_DIR/evals/evals.json")
+  COUNT=$(jq '.evals | length' "$REPO_DIR/evals/evals.json")
+  if [ "$MAX" = "$COUNT" ]; then
+    pass "evals.json id 连续 (1..$COUNT)"
+  else
+    fail "evals.json id 不连续: max=$MAX, count=$COUNT"
+  fi
+else
+  pass "evals.json id 检查跳过（jq 不可用）"
+fi
+echo ""
+
+# ── 9. done_when 主观词汇检查 ─────────────────────────────────
+echo "── done_when 主观词汇检查 ──"
+if grep -q "done_when" "$REPO_DIR/STATUS.md"; then
+  if grep -A1 "done_when" "$REPO_DIR/STATUS.md" | grep -qE 'AI 判断|感觉|认为|满意|觉得'; then
+    fail "STATUS.md 的 done_when 包含主观词汇（AI 判断/感觉/认为/满意/觉得）"
+  else
+    pass "done_when 无主观词汇"
+  fi
+else
+  pass "done_when 检查跳过（STATUS.md 中无 done_when 字段）"
+fi
+echo ""
+
 # ── 最终结果 ─────────────────────────────────────────────────
 if [ "$FAIL" -eq 0 ]; then
   echo "✅ PASSED — 仓库健康，可以继续迭代"
