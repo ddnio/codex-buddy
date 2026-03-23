@@ -66,11 +66,11 @@ NONE
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
-NONE
+W-001
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-NONE
+Phase 1C 共同 id 收敛：Claude top 1=W-004，Codex top 1=W-001，共同项 W-001 优先级最高
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
