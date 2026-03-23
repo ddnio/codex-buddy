@@ -130,7 +130,7 @@ while IFS= read -r f; do
   else
     fail "CHANGELOG 引用了不存在的文件: $f"
   fi
-done < <(grep -oE 'discussions/[^)]+\.md' "$REPO_DIR/CHANGELOG.md")
+done < <(grep -oE 'discussions/[a-z0-9_-]+\.md' "$REPO_DIR/CHANGELOG.md" | sort -u)
 echo ""
 
 # ── 8. evals.json id 连续性 ───────────────────────────────────
