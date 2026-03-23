@@ -263,6 +263,65 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - no-op 修复必须与 discussion 模板联动（不然规则对齐但模板还在强制编造发现）
 
 ### 下轮 Agenda
+- [x] **description 重写**：加 consequential judgment 上位类 + 讨论/迭代场景 → v1.11
+- [x] **自主执行规则**：收敛后直接执行，不追问用户 → v1.11
+- [x] evals：增加 meta/paraphrase/discussion 回归测试用例（id 7-10）→ v1.11
 - [ ] **Evidence Packaging Rule**：证据打包规则（上游污染问题，比 Mode A 降级更根本）
-- [ ] evals：增加 meta/paraphrase/no-change 回归测试用例
 - [ ] 恢复 Output Contract + Verification Escalation Matrix（v1.8→v1.9 hard reset 时丢失）
+
+---
+
+## v1.11.0 — 2026-03-23
+
+**主题：触发覆盖补全 + 收敛后自主执行规则**
+**讨论模式：** Mode B × 2（两个独立问题各跑一轮，双模型收敛后直接实施）
+**完整讨论：** discussions/2026-03-23-trigger-coverage-and-autonomy.md
+
+### 改进内容
+- **description 重写**：加入 `consequential judgment` 上位类，显式覆盖 `workflow / strategy / iteration tradeoffs`，解决"讨论类"场景漏触发的枚举漏洞
+- **自主执行规则**：在"升级 / 停止规则"末尾加 3 条——两边一致且下一步可逆/在范围内 → 直接执行；必须问用户的边界条件（超出原请求/不可逆/外部副作用）；阻断时写收尾
+- **evals 扩充**：新增 id 7-10，覆盖 discussion/path-choice/meta 场景
+- SKILL.md 行数：133 → 137 行
+
+### Codex 独立贡献（Claude 未独立发现）
+- **description 是"唯一触发机制"**：Red Flags 在触发后才读，无法补救首轮匹配——这是机制层面问题，不是执行层问题
+- **"综合结论"≠"确认检查点"**：缺失规则导致综合后仍然停下问用户，是设计漏洞而非执行习惯
+- **宁可误触发，不要漏 consequential judgment**：cost 不对称决定了 description 应偏保守
+
+### 下轮 Agenda
+- [ ] **Evidence Packaging Rule**：证据打包规则（上游污染问题，比 Mode A 降级更根本）
+- [ ] 恢复 Output Contract + Verification Escalation Matrix（v1.8→v1.9 hard reset 时丢失）
+
+---
+
+## v1.12.0 — 2026-03-23
+
+**主题：自主迭代机制——状态机调度 + 双模型选题 + verify-repo.sh 语义增强**
+**讨论模式：** Mode B（Claude+Codex 综合分析，brainstorming + codex-buddy 协作设计）
+**完整讨论：** discussions/2026-03-23-shadow-scheduling-test.md
+
+### 改进内容
+
+**层级 1：修复"叙事先于证据"**
+- **verify-repo.sh 语义增强**：新增 CHANGELOG 引用完整性检查（引用的 discussions/ 文件必须真实存在）、evals.json id 连续性检查（jq-based）、done_when 主观词汇检查（AI判断/感觉/认为/满意/觉得）
+- **补写缺失的 v1.11 讨论文件**：`discussions/2026-03-23-trigger-coverage-and-autonomy.md`
+
+**层级 2：STATUS.md → 显式状态机**
+- 合并原 `validation_queue` + `deferred_items` + `next_safe_step` 为统一 `work_queue`（含 done_when 验收条件）
+- 新增字段：`selected_item` / `selection_rationale` / `operating_mode` / `human_gate` / `last_round_outcome`
+- `next_safe_step` 删除，方向选择从人工指令变为状态推导
+
+**层级 3：WORKFLOW.md Step 1 → 双模型自主选题**
+- Step 1 重写为 Phase 1A（Claude 独立排序）+ Phase 1B（Codex 独立排序，Mode B）+ Phase 1C（综合收敛）
+- Phase 1C 规则：top 1 id 相同则直接选；不同但有共同 id 则选最高优先级共同项；完全分歧则 human_gate
+- Step 1.5 补充自主模式衔接：三问由 AI 自答，写入 discussion 文件，任一否则 NO_OP
+
+### Codex 独立贡献（Claude 未独立发现）
+- "叙事先于证据"比"还不够自主"更根本：系统允许 CHANGELOG 声称完成但证据缺失，verify-repo.sh 不会发现——这是放开自主提交前必须先修的基础
+- STATUS.md 需要显式状态机而不是自然语言提醒：只有引入 `done_when` 可验证条件，AI 才能自主判断"做完了"
+- 影子调度测试中 Codex top 1=W-001，Claude top 1=W-004，Phase 1C 通过共同 id 收敛到 W-001，双模型视角差异（"验证真实落地"vs"修结构缺陷"）在机制内被正确处理
+
+### 下轮 Agenda
+- [ ] **W-001：确认自主执行规则在真实对话中生效**（selected_item，最高优先级）
+- [ ] W-003：恢复 Output Contract + Verification Escalation Matrix
+- [ ] W-004：Evidence Packaging Rule（上游污染问题）

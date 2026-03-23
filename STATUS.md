@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v1.11.0
+v1.12.0
 
 ## repo_commit
 <!-- 每次提交后更新 -->
@@ -84,4 +84,4 @@ NONE
 
 ## last_round_outcome
 <!-- FIXED | VALIDATED | NO_OP | REGRESSED | UNCERTAIN -->
-UNCERTAIN
+VALIDATED
