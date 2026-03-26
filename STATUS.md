@@ -6,11 +6,10 @@
 ---
 
 ## skill_version
-v1.12.0
+v1.14.0
 
 ## repo_commit
-<!-- 每次提交后更新 -->
-(run: git rev-parse --short HEAD)
+HEAD
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -29,11 +28,11 @@ NONE
      done_when 必须是可由命令/文件验证的条件，不能是主观判断 -->
 - id: W-001
   type: validate
-  title: 确认自主执行规则在真实对话中生效
+  title: 确认自主执行规则（SKILL.md L109-114 升级/停止规则）在真实对话中生效
   source: validation_queue V-001
   impact: high
   reversibility: safe
-  done_when: "eval 用例可回放且通过；或 human_gate: REQUIRED:missing_input 若无法自动化"
+  done_when: "人工确认: 提供至少 2 段真实对话 transcript，其中 1 段显示两边一致+可逆+在请求范围内时代理直接执行（本文件 2026-03-25-w001-validation.md 已提供），1 段显示命中边界条件时代理停止并写明 gate 原因"
   status: open
 
 - id: W-002
@@ -52,7 +51,7 @@ NONE
   impact: medium
   reversibility: safe
   done_when: "SKILL.md 含 Output Contract 章节 + Verification Escalation Matrix 章节，且 wc -l SKILL.md | awk '{print $1}' 输出 < 150"
-  status: open
+  status: done
 
 - id: W-004
   type: improve
@@ -63,14 +62,23 @@ NONE
   done_when: "SKILL.md 含 Evidence Packaging Rule 章节，且 wc -l SKILL.md | awk '{print $1}' < 150"
   status: open
 
+- id: W-005
+  type: improve
+  title: any conversation 自动触发 + EXTREMELY-IMPORTANT 政策块
+  source: 用户提议参考 using-superpowers 设计
+  impact: high
+  reversibility: safe
+  done_when: "SKILL.md description 含 'any conversation'，body 含 EXTREMELY-IMPORTANT 块，wc -l < 150"
+  status: done
+
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
-W-001
+W-004
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-Phase 1C 共同 id 收敛：Claude top 1=W-004，Codex top 1=W-001，共同项 W-001 优先级最高
+W-005 完成后自然推进 W-004：Evidence Packaging Rule 是下一个高价值改进
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -84,4 +92,4 @@ NONE
 
 ## last_round_outcome
 <!-- FIXED | VALIDATED | NO_OP | REGRESSED | UNCERTAIN -->
-VALIDATED
+FIXED

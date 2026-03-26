@@ -1,11 +1,8 @@
 ---
 name: codex-buddy
 description: >
-  Use when a task needs independent second-model verification rather than a single-model answer.
-  Trigger when reviewing or approving code/logic, evaluating a design or architecture decision,
-  checking correctness or safety, confirming current or version-specific facts, before any
-  destructive or irreversible action, or when asked to assess this skill itself or explain why
-  it did or did not trigger. If being wrong would be costly, use this skill.
+  Use when starting any conversation — loads the verification policy for this session.
+  Loading this skill does not automatically trigger codex exec; it establishes when and how to use it.
 ---
 
 # codex-buddy
@@ -14,27 +11,38 @@ description: >
 
 **两模型一致 ≠ 正确。真值来自执行验证，不来自模型共识。**
 
+<EXTREMELY-IMPORTANT>
+加载此 skill ≠ 执行 codex exec。加载建立会话级验证政策；执行按 VEM 级别条件触发。
+
+每个回合，回答之前先分类（不得跳过，"只是讨论"不是豁免条件）：
+1. 当前任务是 V0 / V1 / V2 / V3 中的哪一级？
+2. 该级别要求执行 codex exec 吗？
+
+按级别条件执行：V0 不调用 Codex | V1 可选核对（跳过标 `[未验证]`）| V2 提出方先验证 | V3 必须人工/外部验证
+
+若出现"这只是讨论""答案很清晰"等念头 → 这是跳过分类步骤的信号，不是豁免理由。
+</EXTREMELY-IMPORTANT>
+
 ---
 
-## 快速开始
+## Verification Escalation Matrix
 
-```bash
-$(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-b.txt \
-  "[任务] <原始问题>
-[约束] <技术栈、限制>
-[证据] <代码/日志原文>
+先定验证级别，再选 Mode — Mode 只决定信息污染程度，不决定是否必须验证。
 
-给出独立结论，标出：最不确定的地方、关键假设、建议验证什么。"
-```
+| Level | 典型场景 | 默认动作 | 允许停在未验证 |
+|---|---|---|---|
+| V0 | 低风险想法/措辞 | 不必调用 Codex | 可 |
+| V1 | 文档/源码可核对事实 | `read-only` 文档核对 | 可，标 `[未验证]` |
+| V2 | 本地可执行裁决 | 提出方先验证；必要时升 `workspace-write` | 用户明确接受"先分析" |
+| V3 | 破坏性/不可逆操作 | 必须人工/外部验证，不得停在模型共识 | 否 |
 
-读取输出，与 Claude 的独立结论比较。有实质发现时回答收尾问题（见下方）。
+V2/V3 无 `[已验证]` → 不得给可直接执行结论。
 
 ---
 
 ## 三种模式（按信息污染程度）
 
-**选模式的本质：你要传给 Codex 多少 Claude 的先验信息？**
+**先定验证级别（见上方矩阵），再选 Mode — Mode 决定传给 Codex 多少 Claude 的先验信息。**
 
 | 模式 | 传递了什么 | 何时用 |
 |---|---|---|
@@ -44,42 +52,19 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 
 ### Mode B — Parallel（默认）
 
-```bash
-$(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-b-$(date +%s).txt \
-  "[任务] <原始问题>
-[约束] <技术栈、限制>
-[证据] <相关代码/日志原文>
-
-给出独立结论，标出：最不确定的地方、关键假设、建议验证什么。"
-```
-
-Claude 同步独立作答，完成后综合：标出共识、分歧、采用哪个及原因。
+不传 Claude 结论，Codex 独立作答；Claude 同步独立作答；完成后综合，标出共识、分歧、采用哪个及原因。
 
 ### Mode A — Review（受限，已锚定）
 
-```bash
-$(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-a-$(date +%s).txt \
-  "[任务] <用户问题>
-[证据] <代码/报错/日志>
-[Claude 的结论] <结论/假设>
-
-先基于任务和证据独立判断，再对比 Claude 的结论，列出一致点和分歧点。"
-```
+传 Claude 结论，Codex 先独立判断再对比；`[与 Claude 对比]` 必填。
 
 ### Mode C — Debate（两轮封顶）
 
 **C1：** 双方独立陈述，每个论点标注 `[可验证]` / `[文档依据]` / `[经验推断]` / `[逻辑假设]`
 
-```bash
-$(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
-  -o /tmp/codex-c1.txt \
-  "就以下问题给出独立立场，每个论点标注类型：[可验证]/[文档依据]/[经验推断]/[逻辑假设]
-问题：<问题> | 背景：<最小背景>"
-```
-
 **C2：** 只针对对方的 `[可验证]` 或 `[文档依据]` 论点反驳；无新证据则终止。
+
+完整 CLI 模板见 [`references/cli-examples.md`](./references/cli-examples.md)
 
 ---
 
@@ -89,6 +74,13 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 
 **传原始证据，不传加工过的叙事：**
 代码片段 > 代码解释 ｜ 原始报错 > 错误归因 ｜ 命令输出 > 结论摘要
+
+---
+
+## Output Contract
+
+关键结论标注：`[已验证]`（已执行验证）/ `[假设]`（未验证前提）/ `[未验证]`（应验证但未验证；无→写无）。
+Mode A 加 `[与 Claude 对比]`；Mode B/C 首轮禁止。无 `[已验证]` 且影响高风险决策 → 置信度不得标 `high`。
 
 ---
 
@@ -108,6 +100,9 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 - 有决策但无验证路径 → 停在 B，不升 C
 - 有核心分歧且能靠实验/文档裁决 → 升 C 或直接验证
 - 涉及不可逆操作 → 不以模型共识收尾，必须外部验证
+- 两边结论一致，且下一步属于用户原请求、可逆、可验证 → 直接执行，不再追问"要继续吗？"
+- 必须停下问用户：下一步超出原请求 / 缺关键输入 / 不可逆 / 有外部副作用
+- 因上述原因未执行 → 收尾中写明阻断原因
 
 ---
 
@@ -117,9 +112,10 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 - **判断改变**：Codex 让你改变了什么？（没有变化不需要写）
 - **验证缺口**：有本应执行但未执行的外部验证？
 - **污染风险高**：Prompt 传了 Claude 的推理/结论？
+- **learning_signal**：`none` / `trigger-miss` / `trigger-noise` / `mode-error` / `evidence-gap` / `autonomy-gap` / `fact-risk`
 
-三项均无 → 直接给出综合结论，跳过收尾。
-任一有内容 → 简要写出，并判断是否需要写 `logs/incidents/YYYY-MM-DD-<topic>.md`。
+三项（判断/缺口/污染）均无且 learning_signal=none → 直接给出综合结论，跳过收尾。
+任一有内容 → 简要写出；learning_signal != none → 必须二选一：写 incident 或补一条可回放 eval。
 
 ---
 
@@ -129,5 +125,3 @@ $(which codex) exec -C <项目目录> -s read-only --skip-git-repo-check \
 2. 禁止递归：Codex 结论不再交给 Codex 验证
 3. 沙盒：默认 `read-only`；需要执行验证时才升 `-s workspace-write`
 4. 破坏性/不可逆操作前：必须人工外部验证，不能只靠双模型共识
-
-完整 CLI 示例见 [`references/cli-examples.md`](./references/cli-examples.md)

@@ -4,6 +4,24 @@
 
 ---
 
+## v1.14.0 — 2026-03-26 any conversation 自动触发 + EXTREMELY-IMPORTANT 政策块
+
+### 内容
+- description 改为 `Use when starting any conversation — loads the verification policy for this session`
+- body 顶部加 `<EXTREMELY-IMPORTANT>` 块：区分"每次必做（分类任务、建立政策）"vs"按 VEM 条件才执行 codex exec"
+- Mode B/A/C inline bash 模板移出，替换为引用 `references/cli-examples.md`（节省 ~16 行）
+- 行数：144 → 128（< 150 ✓）
+
+### 来源讨论
+`discussions/2026-03-26-w005-any-conversation-trigger.md` — Mode B
+
+### Codex 独立发现（Claude 未提出）
+- **自我门控失败**：当前条件触发要求模型在没有 skill 的情况下正确判断是否需要 skill，而这恰好是 skill 要防止的单模型自洽点
+- **CLI 模板下沉**：any conversation 常驻 skill 应只保留 policy，降低常驻成本
+- **规则疲劳 + 学习信号变脏**：两个 Claude 未识别的副作用
+
+---
+
 ## v1.0.0 — 2026-03-20 初始版本
 
 ### 内容
@@ -325,3 +343,55 @@ Claude + Codex 在 2026-03-20 的首轮 Mode B 分析，两个模型对以下核
 - [ ] **W-001：确认自主执行规则在真实对话中生效**（selected_item，最高优先级）
 - [ ] W-003：恢复 Output Contract + Verification Escalation Matrix
 - [ ] W-004：Evidence Packaging Rule（上游污染问题）
+
+---
+
+## v1.12.1 — 2026-03-25
+
+**主题：W-001 验证——done_when 结构性修复 + 自主执行路径存档**
+**讨论模式：** Mode B（不传 Claude 结论，Codex 独立分析）
+**完整讨论：** [discussions/2026-03-25-w001-validation.md](./discussions/2026-03-25-w001-validation.md)
+
+### 改进内容
+
+- **W-001 done_when 重写**：修复结构性错误（原 done_when 将 `human_gate` 运行时状态混入完成条件）；改为可达的人工验收格式：2 段 transcript（直接执行路径 + 边界阻断路径）
+- **W-001 title 精确化**：明确"自主执行规则"指 SKILL.md L109-114 升级/停止规则，而非泛指 WORKFLOW.md 迭代机制
+- **human_gate 设置**：`REQUIRED:missing_input` — 已有直接执行路径证据（本轮讨论文件），缺"边界条件触发 gate"的真实对话记录
+
+### Codex 独立发现（Claude 未独立识别）
+
+- done_when 的结构性错误：`human_gate` 是运行时阻断状态，不是验收完成条件，两者必须分离（Claude 只提出"以 discussion 作证据"，未识别这个设计缺陷）
+- "自主执行规则"定义更精确：核心是 SKILL.md 的"收敛后直接执行，不追问"（v1.11 引入），不是 WORKFLOW.md 的迭代自主化机制
+- W-003（VEM 恢复）比 W-001 更根本：无验证责任契约，自主执行只会将不可审计的结论更快地执行出去；建议 human_gate 等待期间优先推进 W-003
+
+### 下轮 Agenda
+- [x] **W-003：恢复 Output Contract + Verification Escalation Matrix** → v1.13
+- [ ] W-001：待人工提供"边界阻断"transcript 后关闭
+- [ ] W-004：Evidence Packaging Rule
+
+---
+
+## v1.13.0 — 2026-03-25
+
+**主题：W-003 恢复 Verification Escalation Matrix + Output Contract**
+**讨论模式：** Mode B（不传 Claude 结论，Codex 独立分析）
+**完整讨论：** [discussions/2026-03-25-w003-vem-output-contract.md](./discussions/2026-03-25-w003-vem-output-contract.md)
+
+### 改进内容
+
+- **`快速开始` → `## Verification Escalation Matrix`**：删除与 Mode B 高度重复的快速开始，替换为 V0-V3 四级验证矩阵；将"先定验证级别再选 Mode"的决策顺序置于文档最前
+- **新增 `## Output Contract`**（传递原则之后）：`[已验证]`/`[假设]`/`[未验证]` 标注约定 + Mode A/B/C 的 `[与 Claude 对比]` 规则 + 置信度约束
+- **Mode 入口文字更新**："先定验证级别（见上方矩阵），再选 Mode"
+- **Mode B/A prompt 结尾更新**：强制引用 Output Contract + 各 Mode 比对规则
+
+SKILL.md 行数：138 → 144（净增 6 行，< 150）
+
+### Codex 独立发现（Claude 未独立提出）
+
+- **删除 `快速开始` 而非 `注意事项`**：快速开始与 Mode B 高度重复，是信息密度最低的腾行目标（Claude 计划删注意事项 items 3&4）
+- **VEM 前置而非后置**：替换快速开始位置强制改变心智模型；Claude 计划放在传递原则后，改变力度不够
+- **决策顺序是根本缺陷**：当前先 Mode 再验证天然退化为"再问一次"，这比"缺章节"更根本
+
+### 下轮 Agenda
+- [ ] **W-004：Evidence Packaging Rule（上游污染问题）** — 双模型均认可的高价值改进
+- [ ] W-001：待人工提供"边界阻断"transcript 后关闭
