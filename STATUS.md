@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v2.0.0
+v2.1.0
 
 ## repo_commit
 HEAD
@@ -78,16 +78,16 @@ NONE
   impact: medium
   reversibility: safe
   done_when: "SKILL.md 或 EXTREMELY-IMPORTANT 块含固定格式 per-turn decision header 要求，wc -l < 150"
-  status: open
+  status: done
 
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
-NONE
+W-006
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-v2.0 重构完成；下轮从 W-001/W-002/W-006 + evals 更新中选题
+Claude 选 W-006，Codex 选 W-001；W-001 优先级更高但阻断于 human input，W-006 可自主执行
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -102,3 +102,6 @@ NONE
 ## last_round_outcome
 <!-- FIXED | VALIDATED | NO_OP | REGRESSED | UNCERTAIN -->
 FIXED
+
+## last_round_notes
+W-006 done: EXTREMELY-IMPORTANT 块新增 per-turn V-level header 要求（+3 行，131 < 150）。Codex 独立发现 C3（可回放评估闭环）登记为后续改进。

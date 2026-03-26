@@ -4,6 +4,25 @@
 
 ---
 
+## v2.1.0 — 2026-03-26 per-turn decision envelope（W-006）
+
+### 内容
+- EXTREMELY-IMPORTANT 块新增 per-turn V-level header 要求：每回合回复开头标注 `V{0-3} | {理由}`
+- 使每回合的验证级别决策可审计，从内部推理外显为用户可见痕迹
+- 行数：128 → 131（< 150 ✓）
+
+### 来源讨论
+`discussions/2026-03-26-w006-per-turn-decision-envelope.md` — Probe
+
+### Codex 独立发现（Claude 未提出）
+- **可回放评估闭环**：最大系统性缺陷不是审计痕迹缺失，而是缺少可回放的评估机制来检验触发是否正确、验证是否真的提升了决策质量（登记为后续改进）
+
+### 设计决策记录
+- Codex 的具体改动建议引用了旧版 SKILL.md 结构（Mode A/B/C），不可直接采纳
+- 采用 Claude 的极简方案（+3 行），不采用 Codex 的 Output Contract 重写方案
+
+---
+
 ## v2.0.0 — 2026-03-26 对话协议重构（Mode A/B/C → Probe/Follow-up/Challenge）
 
 ### 内容
