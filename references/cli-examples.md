@@ -17,107 +17,77 @@
 
 ---
 
-## Mode A — Review（审查假设 + 结论）
+## Probe — 独立初判（默认首步）
+
+不传 Claude 结论，让 Codex 独立回答。
 
 ```bash
 CODEX_BIN=$(which codex)
 PROJECT_DIR="/your/project/path"
-OUTPUT_FILE="/tmp/codex-review-$(date +%s).txt"
+OUTPUT_FILE="/tmp/codex-probe-$(date +%s).txt"
 
 $CODEX_BIN exec \
   -C "$PROJECT_DIR" \
   -s read-only \
   --skip-git-repo-check \
   -o "$OUTPUT_FILE" \
-  "请审查以下 Claude 的产出，重点检查：
-1. 结论是否有明显错误
-2. 哪些关键假设没有被验证（特别注意隐含前提）
-3. 忽略了哪些边界条件或风险点
-4. 与你的独立判断有哪些具体分歧
+  "[任务] <一句话描述要判断什么>
+[证据] <代码片段 / 原始报错 / 命令输出>
+[omissions] <没传但可能影响判断的上下文；无写 none>
 
-Claude 的产出：
-\`\`\`
-<粘贴 Claude 的代码或分析>
-\`\`\`
+给出独立结论，标出：最不确定的地方、关键假设、建议验证什么。"
 
-请列出：确定问题 / 潜在风险 / 未验证假设 / 与 Claude 的分歧点"
+# 记录 SESSION_ID 供 Follow-up 使用
+SESSION_ID=$(ls -t ~/.codex/sessions/ | head -1)
 
 cat "$OUTPUT_FILE"
 ```
 
+Claude 同时独立作答，完成后综合两个视角：标出共识、分歧、采用哪个及原因。
+
 ---
 
-## Mode B — Parallel（完全独立，不受 Claude 答案影响）
+## Follow-up — 双向追问（按需）
+
+Codex 回复中包含疑问或信息不足时，补充原始证据回应。
 
 ```bash
-CODEX_BIN=$(which codex)
-PROJECT_DIR="/your/project/path"
-OUTPUT_FILE="/tmp/codex-parallel-$(date +%s).txt"
+# 使用 Probe 时记录的 SESSION_ID
+$CODEX_BIN exec resume "$SESSION_ID" \
+  -o /tmp/codex-followup-$(date +%s).txt \
+  "你问到了 <Codex 的具体问题>。补充证据如下：
 
-# 不传 Claude 的答案，让 Codex 独立回答
-$CODEX_BIN exec \
-  -C "$PROJECT_DIR" \
-  -s read-only \
-  --skip-git-repo-check \
-  -o "$OUTPUT_FILE" \
-  "请独立回答以下问题（不参考任何其他模型的意见）：
+[证据] <原始代码/日志/命令输出>
+[omissions] none
 
-问题：在 Go 后端中实现支付回调验证，使用 HMAC-SHA256 还是 RSA 公钥验证更好？
+基于补充信息更新你的判断。"
 
-请给出：1）推荐方案及技术理由 2）另一方案的适用场景 3）你最担心的实现陷阱"
+# 仅在确认只有单一活跃会话时可用 --last 替代 SESSION_ID
+```
 
-# Claude 同时独立作答，完成后再综合两个视角
-cat "$OUTPUT_FILE"
+注意：Follow-up 仍然不传 Claude 的结论或倾向。
+
+---
+
+## Challenge — 定点争议（按需）
+
+有具体分歧时，只针对编号 claim 提出反证，不重写整篇答案。
+
+```bash
+$CODEX_BIN exec resume "$SESSION_ID" \
+  -o /tmp/codex-challenge-$(date +%s).txt \
+  "关于你的 C2（<Codex 的具体主张>），有以下反证：
+
+[证据] <代码/文档/命令输出>
+
+请针对 C2 更新判断。其他 claims 不变则不需要重复。"
 ```
 
 ---
 
-## Mode C — Debate 第 1 轮（带证据类型标注）
+## 执行验证（workspace-write）
 
-```bash
-$CODEX_BIN exec \
-  -C "$PROJECT_DIR" \
-  -s read-only \
-  --skip-git-repo-check \
-  -o /tmp/codex-debate-r1.txt \
-  "当前讨论的问题是：微服务间通信使用 gRPC 还是 REST？
-
-Claude 的立场是：对内部服务间通信推荐 gRPC，理由是类型安全和性能更好。
-
-请从不同角度反驳或补充这个观点。
-每个论点请标注类型：
-- [可执行验证] 可通过运行代码/benchmark 证实
-- [文档证据] 有明确文档/RFC/规范支持
-- [经验推断] 基于工程经验的合理推断
-- [逻辑假设] 纯逻辑推演，未经验证"
-
-cat /tmp/codex-debate-r1.txt
-```
-
----
-
-## 恢复会话（exec resume）
-
-```bash
-# 列出最近的会话
-ls -t ~/.codex/sessions/ | head -5
-
-# 恢复最近一次会话继续对话
-$CODEX_BIN exec resume --last \
-  -o /tmp/codex-resume.txt \
-  "继续上一轮讨论，针对你提出的第2个论点，Claude 的回应是：<...>"
-
-# 恢复指定会话 ID
-$CODEX_BIN exec resume <SESSION_ID> \
-  -o /tmp/codex-resume.txt \
-  "你的提示"
-```
-
----
-
-## 让 Codex 执行命令验证（workspace-write）
-
-需要 Codex 真正跑命令验证时（比如 benchmark、测试），改用 workspace-write：
+需要 Codex 真正跑命令验证时（benchmark、测试），改用 workspace-write：
 
 ```bash
 $CODEX_BIN exec \
@@ -129,3 +99,22 @@ $CODEX_BIN exec \
 ```
 
 ⚠️ workspace-write 允许 Codex 修改文件，使用前告知用户。
+
+---
+
+## 恢复会话
+
+```bash
+# 列出最近的会话
+ls -t ~/.codex/sessions/ | head -5
+
+# 恢复指定会话
+$CODEX_BIN exec resume <SESSION_ID> \
+  -o /tmp/codex-resume.txt \
+  "你的提示"
+
+# 恢复最近一次（仅单一活跃会话时）
+$CODEX_BIN exec resume --last \
+  -o /tmp/codex-resume.txt \
+  "你的提示"
+```

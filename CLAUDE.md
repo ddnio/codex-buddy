@@ -46,7 +46,7 @@
 
 - `SKILL.md` 体积 < 150 行
 - description 是唯一触发入口，body 不重复触发条件
-- Mode A / B / C 名称和升级链路不可破坏
+- 对话协议（Probe / Follow-up / Challenge）和升级流程不可破坏
 - 传递原则：不传 Claude 的推理过程和倾向性措辞
 - 修改 SKILL.md 后必须执行 `bash scripts/sync-skill.sh` 并做 reload 验证
 - `discussions/` 里的原始输出不可裁剪或删改

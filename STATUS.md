@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v1.15.0
+v2.0.0
 
 ## repo_commit
 HEAD
@@ -87,7 +87,7 @@ NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-W-004 完成；下轮从 W-001/W-002/W-006 中选题
+v2.0 重构完成；下轮从 W-001/W-002/W-006 + evals 更新中选题
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->

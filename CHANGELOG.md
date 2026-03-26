@@ -4,6 +4,36 @@
 
 ---
 
+## v2.0.0 — 2026-03-26 对话协议重构（Mode A/B/C → Probe/Follow-up/Challenge）
+
+### 内容
+- **Mode A/B/C 整体移除**，替换为自然对话协议：Probe（独立初判）→ Follow-up（双向追问）→ Challenge（定点争议）
+- **双向交流**：Codex 可以表达不确定/追问，Claude 通过 `exec resume <SESSION_ID>` 回应
+- **Claude 侧容错解析**：不要求 Codex 遵守格式，Claude 自行提取 claims/questions/tests
+- **反馈三层**：本次对话 Output Contract + 项目级 incident/eval/discussion + 跨会话记忆晋升
+- **恢复丢失项**：漏触发红旗回归 EXTREMELY-IMPORTANT 块、"可验证"执行门槛、项目级反馈闭环
+- references/cli-examples.md 同步改为 Probe/Follow-up/Challenge/Verify 四段
+- CLAUDE.md 放松 Mode A/B/C 约束，改为对话协议约束
+- 行数：133 → 128（< 150 ✓）
+
+### 来源讨论
+`discussions/2026-03-26-v2-direction-rethink.md` — Mode B → Mode C（四轮）
+
+### Codex 独立发现（Claude 未提出）
+- **V0 vs Probe 自相矛盾**：草案写"Probe 每次必做"但 V0 说不调 Codex，逻辑冲突
+- **resume --last 脆弱性**：多会话时接错线程，应改为显式 SESSION_ID
+- **Challenge 编号步骤缺失**：要求针对编号 claim 争论但没定义编号步骤
+- **项目级反馈丢失**：v1.15 的 learning_signal → incident/eval 被整段删掉了
+- **"弱约束+强适配"原则**：不应要求外部 Codex CLI 遵守固定格式
+
+### 设计决策记录
+- 用户明确选择方向 B（重构），放松 CLAUDE.md 中 Mode A/B/C 不可破坏的约束
+- Codex 第一轮提出 5 动作协议，第二轮自我修正为"保留 VEM + 内部动词"
+- 最终方案：VEM 保留为外层闸门，Probe/Follow-up/Challenge 作为对话协议（非互斥模式）
+- 默认单次 Probe，Follow-up/Challenge 按需升级，最多 2 次 Codex 调用
+
+---
+
 ## v1.15.0 — 2026-03-26 Evidence Packaging Rule（上游污染操作化）
 
 ### 内容
