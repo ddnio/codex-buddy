@@ -4,6 +4,21 @@
 
 ---
 
+## v2.5.1 — 2026-03-26 README.md 对齐 v2.5 设计
+
+### 内容
+- README.md：Mode A/B/C → Probe/Follow-up/Challenge 对话协议
+- README.md：新增 V0–V3 验证级别表，替代旧的触发场景表
+- README.md：设计哲学更新（证据打包、渐进升级）
+- README.md：项目结构补全（verify-repo.sh、WORKFLOW.md、STATUS.md 等）
+- GPT-4o 硬编码移除，改为通用 Codex 描述
+
+### 版本规则
+- 自本版本起，迭代使用小版本号（2.5.1, 2.5.2, ...）
+- 大版本号变更需人工确认对齐后使用
+
+---
+
 ## v2.5.0 — 2026-03-26 文档术语同步（W-010）
 
 ### 内容

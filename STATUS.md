@@ -6,10 +6,10 @@
 ---
 
 ## skill_version
-v2.5.0
+v2.5.1
 
 ## repo_commit
-03bea1a
+f2b96cd
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -140,4 +140,4 @@ NONE
 FIXED
 
 ## last_round_notes
-W-010 done: WORKFLOW.md/CONTRIBUTING.md 同步 v2.0 术语（6 处 Mode A/B/C → Probe/Follow-up/Challenge）。自主可执行项再次清空。
+v2.5.1: README.md 与 v2.5 SKILL.md 对齐（Mode A/B/C → Probe/Follow-up/Challenge + V0-V3 验证级别 + 项目结构更新）。

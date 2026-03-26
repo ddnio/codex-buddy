@@ -1,13 +1,13 @@
 # codex-buddy
 
-> A Claude Code skill for cross-model validation via Codex CLI (GPT-4o).
+> A Claude Code skill for cross-model verification via Codex CLI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 单一 AI 模型最危险的失效模式不是"不知道"，而是**系统性地、流畅地把错误合理化**。
-codex-buddy 通过引入 GPT-4o 作为独立审计者，打破 Claude 的闭环自洽。
+codex-buddy 通过引入 Codex 作为独立审计者，打破 Claude 的闭环自洽。
 
-**核心原则：两模型一致 ≠ 正确。真值来自外部执行验证。**
+**核心原则：两模型一致 ≠ 正确。真值来自执行验证，不来自模型共识。**
 
 ---
 
@@ -85,26 +85,32 @@ cd codex-buddy && git pull
 
 ## 使用
 
-skill 会在以下场景自动触发：
+安装后，skill 在每次对话开始时自动加载，建立会话级验证政策。**加载 ≠ 自动调用 Codex**，而是让 Claude 每个回合判断是否需要跨模型验证。
 
-| 触发场景 | 原因 |
-|---------|------|
-| 审查代码或逻辑 | 避免自我验证盲区 |
-| 高风险架构决策 | 多个合理方案需要独立视角 |
-| 破坏性或不可逆操作前 | 不可逆操作必须 double-check |
-| 确认版本相关事实 | 减少幻觉 |
-| 评估 skill 自身或解释为何没触发 | 自评最容易自我服务 |
-| 被问到"答案有没有错"等独立验证需求 | 如果答错了代价高就用 |
+### 验证级别（V0–V3）
 
-## 三种工作模式
+每个回合，Claude 会在回复开头标注验证级别：
+
+| 级别 | 场景 | 动作 |
+|------|------|------|
+| V0 | 低风险/机械任务 | 不调 Codex |
+| V1 | 文档/源码可核对的事实 | 可选核对，跳过标 `[未验证]` |
+| V2 | 需要执行验证的判断 | 必须先验证再给结论 |
+| V3 | 破坏性/不可逆操作 | 必须人工/外部验证 |
+
+### 对话协议
+
+需要调用 Codex 时，对话按以下协议自然流转：
 
 ```
-Mode B — Parallel  默认，两模型独立回答同一问题
-    ↓ 结论已成型，只需找漏项
-Mode A — Review    定向审查，传 Claude 结论给 Codex
-    ↓ 有核心分歧且可被证据裁决
-Mode C — Debate    C1 各自陈述 → C2 交换反驳（硬性 2 轮封顶）
+Probe（默认首步）— 不传 Claude 结论，两模型独立回答，综合共识与分歧
+  ↓ Codex 有疑问或信息不足
+Follow-up — 补充原始证据回应 Codex 追问，仍不传 Claude 结论
+  ↓ 有具体分歧且可被证据裁决
+Challenge — 针对编号 claim (C1/C2/...) 提出反证，不重写整篇答案
 ```
+
+**裁决规则：** 分歧可验证 → 直接验证，不辩论。无法验证 → 标 `[unresolved]`，交给用户。最多 2 次 Codex 调用，未收敛就停。
 
 详细用法和 CLI 示例见 [`references/cli-examples.md`](./references/cli-examples.md)。
 
@@ -112,9 +118,9 @@ Mode C — Debate    C1 各自陈述 → C2 交换反驳（硬性 2 轮封顶）
 
 ## 设计哲学
 
-- **受控异质性**：不同训练路径、RLHF 偏好产生真正不同的视角
-- **升级链路**：三种模式是渐进升级路径，不是平行选择
-- **Prompt 独立性协议**：严格控制传给 Codex 的内容，避免锚定效应
+- **受控异质性**：不同训练路径产生真正不同的视角
+- **证据打包**：传原始证据，不传 Claude 的推理过程和倾向性措辞，避免锚定效应
+- **渐进升级**：Probe → Follow-up → Challenge 是按需升级路径，不是平行选择
 - **真值来源**：运行代码 > 查文档 > 模型共识
 
 设计演进过程见 [`discussions/`](./discussions/)。
@@ -125,14 +131,18 @@ Mode C — Debate    C1 各自陈述 → C2 交换反驳（硬性 2 轮封顶）
 
 ```
 codex-buddy/
-├── SKILL.md              # skill 主文件（安装后 Claude 读取此文件）
+├── SKILL.md              # skill 主文件（唯一产物，安装后 AI 读取此文件）
 ├── references/
-│   └── cli-examples.md   # 完整 CLI 用法示例
+│   ├── cli-examples.md   # 完整 Codex CLI 用法示例
+│   └── WORKFLOW.md       # 开发者迭代流程手册
 ├── discussions/          # 每轮 Claude+Codex 协作讨论记录
 ├── evals/
-│   └── evals.json        # 触发判断测试用例
-└── scripts/
-    └── sync-skill.sh     # 开发用：同步到本地 skill 路径
+│   └── evals.json        # 触发判断测试用例（18 条）
+├── scripts/
+│   ├── sync-skill.sh     # 开发用：同步到本地 skill 路径
+│   └── verify-repo.sh    # 仓库健康检查（11 项自动化校验）
+├── STATUS.md             # 项目状态快照（work queue + 调度）
+└── CHANGELOG.md          # 历史版本记录
 ```
 
 ---
