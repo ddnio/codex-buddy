@@ -148,7 +148,43 @@ else
 fi
 echo ""
 
-# ── 9. done_when 主观词汇检查 ─────────────────────────────────
+# ── 9. STATUS 状态机一致性 ──────────────────────────────────────
+echo "── STATUS 状态机一致性 ──"
+STATUS_FILE="$REPO_DIR/STATUS.md"
+
+# 提取 selected_item 的值（跳过注释行）
+SELECTED=$(sed -n '/^## selected_item/,/^## /{ /^#/d; /^$/d; /^<!--/d; p; }' "$STATUS_FILE" | head -1 | tr -d '[:space:]')
+
+if [ -n "$SELECTED" ] && [ "$SELECTED" != "NONE" ]; then
+  # 检查 selected_item 对应的 status
+  ITEM_STATUS=$(grep -A10 "id: $SELECTED" "$STATUS_FILE" | grep "status:" | head -1 | awk '{print $2}')
+  if [ "$ITEM_STATUS" = "done" ]; then
+    fail "selected_item ($SELECTED) 指向已完成的工作项（状态漂移）"
+  elif [ "$ITEM_STATUS" = "open" ]; then
+    pass "selected_item ($SELECTED) 指向 open 工作项"
+  elif [ -z "$ITEM_STATUS" ]; then
+    fail "selected_item ($SELECTED) 在 work_queue 中不存在"
+  else
+    pass "selected_item ($SELECTED) 状态: $ITEM_STATUS"
+  fi
+else
+  pass "selected_item 为 NONE（无选中项）"
+fi
+
+# 检查 human_gate 与 operating_mode 一致性
+HUMAN_GATE=$(sed -n '/^## human_gate/,/^## /{ /^#/d; /^$/d; /^<!--/d; p; }' "$STATUS_FILE" | head -1 | tr -d '[:space:]')
+OP_MODE=$(sed -n '/^## operating_mode/,/^## /{ /^#/d; /^$/d; /^<!--/d; p; }' "$STATUS_FILE" | head -1 | tr -d '[:space:]')
+
+if [ -n "$HUMAN_GATE" ] && [ "$HUMAN_GATE" != "NONE" ] && [ "$OP_MODE" != "BLOCKED" ]; then
+  fail "human_gate=$HUMAN_GATE 但 operating_mode=$OP_MODE（应为 BLOCKED）"
+elif [ "$HUMAN_GATE" = "NONE" ] || [ -z "$HUMAN_GATE" ]; then
+  pass "human_gate 与 operating_mode 一致"
+else
+  pass "human_gate=$HUMAN_GATE, operating_mode=$OP_MODE 一致"
+fi
+echo ""
+
+# ── 10. done_when 主观词汇检查 ────────────────────────────────
 echo "── done_when 主观词汇检查 ──"
 if grep -q "done_when" "$REPO_DIR/STATUS.md"; then
   if grep -A1 "done_when" "$REPO_DIR/STATUS.md" | grep -qE 'AI 判断|感觉|认为|满意|觉得'; then

@@ -4,6 +4,23 @@
 
 ---
 
+## v2.3.0 — 2026-03-26 STATUS 状态机一致性校验（W-008）
+
+### 内容
+- verify-repo.sh 新增 Section 9：STATUS 状态机一致性检查
+- 校验 1：selected_item 必须指向 open 工作项或 NONE，指向 done 项则报错
+- 校验 2：human_gate != NONE 时 operating_mode 必须为 BLOCKED
+- 修复上轮遗留的 selected_item 漂移（W-007 已 done 但仍被选中）
+
+### 来源
+上轮 Codex C2 独立发现：selected_item 漂移是真实 bug
+
+### 设计决策记录
+- 用 [transition-mode] 跳过 Codex Probe，因为上轮已达成共识且是纯工具链改动
+- 不依赖 jq，用 grep/sed/awk 实现，保持可移植性
+
+---
+
 ## v2.2.0 — 2026-03-26 evals 扩展（W-007 行为级评估覆盖）
 
 ### 内容

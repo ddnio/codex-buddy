@@ -6,10 +6,10 @@
 ---
 
 ## skill_version
-v2.2.0
+v2.3.0
 
 ## repo_commit
-b161324
+afc1a7e
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -96,7 +96,7 @@ NONE
   impact: medium
   reversibility: safe
   done_when: "verify-repo.sh 检查 selected_item ∈ open ids ∪ {NONE}，且对已完成项报错"
-  status: open
+  status: done
 
 - id: W-009
   type: improve
@@ -110,11 +110,11 @@ NONE
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
-W-007
+NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-Claude 和 Codex 均选 W-007 为 top 1；evals 扩展是验证闭环的第一步
+W-008 完成；剩余 open 项：W-001（需 human transcript）、W-002（需 eval 自动化）、W-009
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -131,4 +131,4 @@ NONE
 FIXED
 
 ## last_round_notes
-W-007 done: evals 从 10→18 条，新增 v-level-header/evidence-packaging/probe-execution/boundary-stop 四类覆盖。新增 W-007/W-008/W-009 到 work_queue。
+W-008 done: verify-repo.sh 新增 STATUS 状态机一致性校验（selected_item 漂移检测 + human_gate/operating_mode 一致性）。
