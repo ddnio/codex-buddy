@@ -28,7 +28,7 @@ NONE
      done_when 必须是可由命令/文件验证的条件，不能是主观判断 -->
 - id: W-001
   type: validate
-  title: 确认自主执行规则（SKILL.md L109-114 升级/停止规则）在真实对话中生效
+  title: 确认自主执行规则（SKILL.md "升级 / 停止规则"章节）在真实对话中生效
   source: validation_queue V-001
   impact: high
   reversibility: safe

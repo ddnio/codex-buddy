@@ -58,7 +58,7 @@
 - description 改为 `Use when starting any conversation — loads the verification policy for this session`
 - body 顶部加 `<EXTREMELY-IMPORTANT>` 块：区分"每次必做（分类任务、建立政策）"vs"按 VEM 条件才执行 codex exec"
 - Mode B/A/C inline bash 模板移出，替换为引用 `references/cli-examples.md`（节省 ~16 行）
-- 行数：144 → 128（< 150 ✓）
+- 行数：144 → 127（< 150 ✓）
 
 ### 来源讨论
 `discussions/2026-03-26-w005-any-conversation-trigger.md` — Mode B

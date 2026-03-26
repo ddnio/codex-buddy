@@ -1,18 +1,18 @@
 {
   "skill_name": "codex-buddy",
-  "description": "测试 codex-buddy skill 加载后是否正确分类任务（V0-V3）及选择 Mode；v1.14 起 skill 每次必加载，测试重点从'是否触发'变为'是否正确执行 codex exec'",
+  "description": "测试 codex-buddy skill 加载后是否正确分类任务（V0-V3）及选择对话协议步骤；v2.0 起使用 Probe/Follow-up/Challenge 替代 Mode A/B/C",
   "evals": [
     {
       "id": 1,
       "prompt": "我刚写完一个 Go 服务的 JWT 鉴权中间件，用了 HS256，请帮我检查有没有安全漏洞",
-      "expected_output": "触发 codex-buddy Mode A，让 Codex 独立审查代码的安全假设和边界条件",
-      "tags": ["should-trigger", "mode-a", "security"]
+      "expected_output": "分类为 V2，执行 Probe 让 Codex 独立审查安全假设和边界条件",
+      "tags": ["should-trigger", "probe", "v2", "security"]
     },
     {
       "id": 2,
       "prompt": "我在做一个新项目的数据库选型，PostgreSQL 还是 MongoDB，两个都能满足需求，帮我分析一下",
-      "expected_output": "触发 codex-buddy Mode B（Parallel），两个模型独立分析后综合视角",
-      "tags": ["should-trigger", "mode-b", "architecture"]
+      "expected_output": "分类为 V1/V2，执行 Probe，两个模型独立分析后综合",
+      "tags": ["should-trigger", "probe", "v1", "architecture"]
     },
     {
       "id": 3,
@@ -23,8 +23,8 @@
     {
       "id": 4,
       "prompt": "Redis 的 SETNX 命令在分布式锁实现中是否线程安全？我记得是的但不确定",
-      "expected_output": "触发 codex-buddy，事实接近知识截止点且有执行验证价值",
-      "tags": ["should-trigger", "mode-a", "fact-check"]
+      "expected_output": "分类为 V1，可选 Probe 核对事实，跳过则标 [未验证]",
+      "tags": ["should-trigger", "probe", "v1", "fact-check"]
     },
     {
       "id": 5,
@@ -35,32 +35,32 @@
     {
       "id": 6,
       "prompt": "我准备把生产数据库迁移到新的 schema，已经写好迁移脚本了，能帮我确认一下逻辑没问题吗",
-      "expected_output": "触发 codex-buddy Mode A，高破坏性操作必须 double-check",
-      "tags": ["should-trigger", "mode-a", "destructive-operation"]
+      "expected_output": "分类为 V3，执行 Probe 让 Codex 独立审查，高破坏性操作必须外部验证",
+      "tags": ["should-trigger", "probe", "v3", "destructive-operation"]
     },
     {
       "id": 7,
       "prompt": "我们下一步先补 eval 还是先改 description？",
-      "expected_output": "触发 codex-buddy，路径选择属于 consequential judgment，单模型闭环有自洽风险",
-      "tags": ["should-trigger", "mode-b", "discussion", "path-choice"]
+      "expected_output": "分类为 V1/V2，执行 Probe，路径选择属于 consequential judgment",
+      "tags": ["should-trigger", "probe", "discussion", "path-choice"]
     },
     {
       "id": 8,
       "prompt": "这个 skill 的迭代机制该怎么优化？",
-      "expected_output": "触发 codex-buddy，workflow/strategy 讨论属于 consequential judgment",
-      "tags": ["should-trigger", "mode-b", "discussion", "meta"]
+      "expected_output": "分类为 V2，执行 Probe，workflow/strategy 讨论属于 consequential judgment",
+      "tags": ["should-trigger", "probe", "discussion", "meta"]
     },
     {
       "id": 9,
       "prompt": "这两条路径你建议走哪条？",
-      "expected_output": "触发 codex-buddy，非平凡路径选择需要独立第二判断",
-      "tags": ["should-trigger", "mode-b", "discussion", "path-choice"]
+      "expected_output": "分类为 V1/V2，执行 Probe，非平凡路径选择需要独立第二判断",
+      "tags": ["should-trigger", "probe", "discussion", "path-choice"]
     },
     {
       "id": 10,
       "prompt": "为什么刚才没触发 codex-buddy？",
-      "expected_output": "触发 codex-buddy，meta 场景：解释 skill 自身的触发行为",
-      "tags": ["should-trigger", "mode-b", "meta", "self-assessment"]
+      "expected_output": "执行 Probe，meta 场景：解释 skill 自身的触发行为",
+      "tags": ["should-trigger", "probe", "meta", "self-assessment"]
     }
   ]
 }
