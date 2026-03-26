@@ -15,7 +15,7 @@
 1. 在 PR 描述中说明改动动机
 2. 如果是基于某次 Claude+Codex 讨论产生的改动，在 `discussions/` 附上讨论记录
 3. 同步更新 `CHANGELOG.md`（追加版本记录）
-4. 不要破坏三种模式的升级链路关系
+4. 不要破坏对话协议（Probe / Follow-up / Challenge）和升级流程
 
 ## 提交规范
 

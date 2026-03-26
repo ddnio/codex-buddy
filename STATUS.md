@@ -6,10 +6,10 @@
 ---
 
 ## skill_version
-v2.4.0
+v2.5.0
 
 ## repo_commit
-14f358d
+03bea1a
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -107,6 +107,15 @@ NONE
   done_when: "WORKFLOW.md 或 verify-repo.sh 含规则：CHANGELOG 中 '登记为后续改进' 标记必须有对应 work_queue 条目"
   status: done
 
+- id: W-010
+  type: improve
+  title: WORKFLOW.md/CONTRIBUTING.md 同步 v2.0 术语（Mode A/B/C → Probe/Follow-up/Challenge）
+  source: v2.0 重构后遗留的文档不一致
+  impact: medium
+  reversibility: safe
+  done_when: "grep -c 'Mode A\\|Mode B\\|Mode C' references/WORKFLOW.md CONTRIBUTING.md 输出 0"
+  status: done
+
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
@@ -114,7 +123,7 @@ NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-W-009 完成；剩余 open 项仅 W-001（需 human transcript）和 W-002（需 eval 自动化），均阻断于 human input
+W-010 完成；剩余 open 项仅 W-001/W-002，均阻断于 human input；自主可执行项已清空
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -131,4 +140,4 @@ NONE
 FIXED
 
 ## last_round_notes
-W-009 done: verify-repo.sh 新增独立发现落地检查（CHANGELOG '登记为后续改进' 标记必须有对应 work_queue 条目）。所有自主可执行项已清空。
+W-010 done: WORKFLOW.md/CONTRIBUTING.md 同步 v2.0 术语（6 处 Mode A/B/C → Probe/Follow-up/Challenge）。自主可执行项再次清空。
