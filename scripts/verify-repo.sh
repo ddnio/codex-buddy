@@ -51,8 +51,8 @@ else
 fi
 
 # 关键段落各出现至少一次
-for section in "Mode B" "Mode A" "传递原则" "升级 / 停止规则" "收尾"; do
-  count=$(grep -c "$section" "$SKILL" 2>/dev/null || echo 0)
+for section in "Mode B" "Mode A" "Evidence Packaging Rule" "升级 / 停止规则" "收尾"; do
+  count=$(grep -c "$section" "$SKILL" 2>/dev/null || true)
   if [ "$count" -ge 1 ]; then
     pass "SKILL.md 含段落 '$section'"
   else

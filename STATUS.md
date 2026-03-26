@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v1.14.0
+v1.15.0
 
 ## repo_commit
 HEAD
@@ -60,7 +60,7 @@ NONE
   impact: high
   reversibility: safe
   done_when: "SKILL.md 含 Evidence Packaging Rule 章节，且 wc -l SKILL.md | awk '{print $1}' < 150"
-  status: open
+  status: done
 
 - id: W-005
   type: improve
@@ -71,14 +71,23 @@ NONE
   done_when: "SKILL.md description 含 'any conversation'，body 含 EXTREMELY-IMPORTANT 块，wc -l < 150"
   status: done
 
+- id: W-006
+  type: improve
+  title: per-turn decision envelope（每回合决策可审计性）
+  source: Codex W-004 独立发现
+  impact: medium
+  reversibility: safe
+  done_when: "SKILL.md 或 EXTREMELY-IMPORTANT 块含固定格式 per-turn decision header 要求，wc -l < 150"
+  status: open
+
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
-W-004
+NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-W-005 完成后自然推进 W-004：Evidence Packaging Rule 是下一个高价值改进
+W-004 完成；下轮从 W-001/W-002/W-006 中选题
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->

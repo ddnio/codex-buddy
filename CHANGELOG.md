@@ -4,6 +4,24 @@
 
 ---
 
+## v1.15.0 — 2026-03-26 Evidence Packaging Rule（上游污染操作化）
+
+### 内容
+- `## 传递原则` → `## Evidence Packaging Rule`：声明式禁令改为 4 步操作清单
+- 新增 `task_to_judge`（中性问题框架）+ `known_omissions`（对抗选择偏差）+ 污染清理 + "答案草稿"自测
+- 砍掉 Codex 提出的 `why_relevant`（Codex 自标为叙事污染风险）
+- 行数：127 → 133（< 150 ✓）
+
+### 来源讨论
+`discussions/2026-03-26-w004-evidence-packaging-rule.md` — Mode B
+
+### Codex 独立发现（Claude 未提出）
+- **known_omissions**：Claude 识别了选择偏差但没给对策，Codex 给出显式申报机制
+- **why_relevant 反向风险**：Codex 自己提出的步骤自己标了风险，触发砍掉决策
+- **per-turn decision envelope**：skill 最大设计缺陷——缺少每回合的外显决策记录，已登记为 W-006
+
+---
+
 ## v1.14.0 — 2026-03-26 any conversation 自动触发 + EXTREMELY-IMPORTANT 政策块
 
 ### 内容
