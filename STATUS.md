@@ -6,10 +6,10 @@
 ---
 
 ## skill_version
-v2.1.0
+v2.2.0
 
 ## repo_commit
-HEAD
+b161324
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -80,14 +80,41 @@ NONE
   done_when: "SKILL.md 或 EXTREMELY-IMPORTANT 块含固定格式 per-turn decision header 要求，wc -l < 150"
   status: done
 
+- id: W-007
+  type: improve
+  title: 扩展 evals 覆盖面（行为级评估，不只测分类）
+  source: Codex C3 独立发现 + Claude 分析
+  impact: high
+  reversibility: safe
+  done_when: "evals.json 含 ≥15 条用例，且 tags 覆盖 v-level-header / evidence-packaging / probe-execution / boundary-stop 四类"
+  status: done
+
+- id: W-008
+  type: improve
+  title: verify-repo.sh 增加 STATUS 状态机一致性校验
+  source: Codex C2 独立发现（selected_item 漂移 bug）
+  impact: medium
+  reversibility: safe
+  done_when: "verify-repo.sh 检查 selected_item ∈ open ids ∪ {NONE}，且对已完成项报错"
+  status: open
+
+- id: W-009
+  type: improve
+  title: 独立发现落地约束（unresolved/高价值发现必须进 work_queue）
+  source: Codex C3 独立发现
+  impact: medium
+  reversibility: safe
+  done_when: "WORKFLOW.md 或 verify-repo.sh 含规则：CHANGELOG 中 '登记为后续改进' 标记必须有对应 work_queue 条目"
+  status: open
+
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
-W-006
+W-007
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-Claude 选 W-006，Codex 选 W-001；W-001 优先级更高但阻断于 human input，W-006 可自主执行
+Claude 和 Codex 均选 W-007 为 top 1；evals 扩展是验证闭环的第一步
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -104,4 +131,4 @@ NONE
 FIXED
 
 ## last_round_notes
-W-006 done: EXTREMELY-IMPORTANT 块新增 per-turn V-level header 要求（+3 行，131 < 150）。Codex 独立发现 C3（可回放评估闭环）登记为后续改进。
+W-007 done: evals 从 10→18 条，新增 v-level-header/evidence-packaging/probe-execution/boundary-stop 四类覆盖。新增 W-007/W-008/W-009 到 work_queue。

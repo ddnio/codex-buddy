@@ -4,6 +4,28 @@
 
 ---
 
+## v2.2.0 — 2026-03-26 evals 扩展（W-007 行为级评估覆盖）
+
+### 内容
+- evals.json 从 10 条扩展到 18 条
+- 所有现有用例更新为要求 V-level header 在回复开头
+- 新增 8 条用例覆盖：V3 边界停止（#11, #16）、证据打包质量（#12, #13）、Probe 独立性（#13, #17）、Follow-up 协议（#18）、V0 边界判断（#14, #15）
+- 四类新 tags 全部覆盖：v-level-header / evidence-packaging / probe-execution / boundary-stop
+- 新增 W-008（STATUS 状态机校验）、W-009（独立发现落地约束）到 work_queue
+
+### 来源讨论
+`discussions/2026-03-26-w007-evals-expansion.md` — Probe
+
+### Codex 独立发现（Claude 未提出）
+- 确认"当前 evals 只测表态不测行为"的诊断与仓库既有分析一致
+- 建议 W-008（STATUS 一致性校验）优先于 W-007，因为 selected_item 漂移是真实 bug
+
+### 设计决策记录
+- 选 W-007 先于 W-008，因为 evals 扩展直接回应上轮 Codex C3（可回放评估闭环）
+- 新用例设计覆盖三种对话协议（Probe/Follow-up/Challenge）而非只测分类
+
+---
+
 ## v2.1.0 — 2026-03-26 per-turn decision envelope（W-006）
 
 ### 内容
