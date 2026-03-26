@@ -4,6 +4,23 @@
 
 ---
 
+## v2.4.0 — 2026-03-26 独立发现落地约束（W-009）
+
+### 内容
+- verify-repo.sh 新增 Section 10：独立发现落地检查
+- 扫描 CHANGELOG 中的"登记为后续改进"标记，验证 work_queue 中有对应条目
+- 扫描 CHANGELOG 中的"unresolved"标记（仅警告不阻断）
+- 防止高价值 Codex 独立发现停留在叙事层而不进入 work_queue
+
+### 来源
+Codex C3 独立发现（v2.1.0 轮次）
+
+### 设计决策记录
+- 用 [transition-mode] 跳过 Codex Probe（纯工具链改动，与 W-008 同类）
+- "unresolved" 标记只警告不阻断，因为可能是历史记录中的合理状态
+
+---
+
 ## v2.3.0 — 2026-03-26 STATUS 状态机一致性校验（W-008）
 
 ### 内容

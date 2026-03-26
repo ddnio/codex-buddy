@@ -184,7 +184,47 @@ else
 fi
 echo ""
 
-# ── 10. done_when 主观词汇检查 ────────────────────────────────
+# ── 10. 独立发现落地检查 ───────────────────────────────────────
+echo "── 独立发现落地检查 ──"
+# CHANGELOG 中"登记为后续改进"或"unresolved"的标记，必须有对应 work_queue 条目或已关闭
+DEFERRED_MARKERS=$(grep -oP '(?<=（|: ).*?(?=（登记为后续改进）)' "$REPO_DIR/CHANGELOG.md" 2>/dev/null || true)
+UNRESOLVED_COUNT=$(grep -c 'unresolved' "$REPO_DIR/CHANGELOG.md" 2>/dev/null || true)
+DEFERRED_COUNT=$(grep -c '登记为后续改进' "$REPO_DIR/CHANGELOG.md" 2>/dev/null || true)
+
+DEFERRED_TOTAL=$((DEFERRED_COUNT + UNRESOLVED_COUNT))
+if [ "$DEFERRED_TOTAL" -eq 0 ]; then
+  pass "CHANGELOG 无未落地的独立发现标记"
+else
+  # 检查每个"登记为后续改进"是否在 work_queue 或 discussions 中有对应
+  ORPHAN=0
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    # 从标记行提取关键词，在 STATUS.md work_queue 中搜索
+    KEYWORDS=$(echo "$line" | grep -oP '登记为后续改进' 2>/dev/null || true)
+    if [ -n "$KEYWORDS" ]; then
+      # 提取标记前的描述文字作为搜索词
+      DESC=$(echo "$line" | sed 's/（登记为后续改进）//' | sed 's/.*[：:]//' | tr -d '*' | xargs)
+      # 在 work_queue 中搜索（宽松匹配：标题包含关键词的前几个字）
+      FIRST_WORDS=$(echo "$DESC" | awk '{print $1}')
+      if grep -q "$FIRST_WORDS" "$REPO_DIR/STATUS.md" 2>/dev/null; then
+        pass "独立发现已落地: $DESC"
+      else
+        fail "CHANGELOG 标记'登记为后续改进'但 work_queue 无对应: $DESC"
+        ORPHAN=$((ORPHAN + 1))
+      fi
+    fi
+  done < <(grep '登记为后续改进' "$REPO_DIR/CHANGELOG.md")
+
+  if [ "$ORPHAN" -eq 0 ] && [ "$UNRESOLVED_COUNT" -eq 0 ]; then
+    pass "所有独立发现标记均已落地"
+  elif [ "$UNRESOLVED_COUNT" -gt 0 ]; then
+    # unresolved 只警告，不阻断（可能是历史记录）
+    pass "CHANGELOG 含 $UNRESOLVED_COUNT 处 unresolved 标记（仅供参考）"
+  fi
+fi
+echo ""
+
+# ── 11. done_when 主观词汇检查 ───────────────────────────────
 echo "── done_when 主观词汇检查 ──"
 if grep -q "done_when" "$REPO_DIR/STATUS.md"; then
   if grep -A1 "done_when" "$REPO_DIR/STATUS.md" | grep -qE 'AI 判断|感觉|认为|满意|觉得'; then

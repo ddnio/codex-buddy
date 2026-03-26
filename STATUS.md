@@ -6,10 +6,10 @@
 ---
 
 ## skill_version
-v2.3.0
+v2.4.0
 
 ## repo_commit
-afc1a7e
+14f358d
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -105,7 +105,7 @@ NONE
   impact: medium
   reversibility: safe
   done_when: "WORKFLOW.md 或 verify-repo.sh 含规则：CHANGELOG 中 '登记为后续改进' 标记必须有对应 work_queue 条目"
-  status: open
+  status: done
 
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
@@ -114,7 +114,7 @@ NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-W-008 完成；剩余 open 项：W-001（需 human transcript）、W-002（需 eval 自动化）、W-009
+W-009 完成；剩余 open 项仅 W-001（需 human transcript）和 W-002（需 eval 自动化），均阻断于 human input
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -131,4 +131,4 @@ NONE
 FIXED
 
 ## last_round_notes
-W-008 done: verify-repo.sh 新增 STATUS 状态机一致性校验（selected_item 漂移检测 + human_gate/operating_mode 一致性）。
+W-009 done: verify-repo.sh 新增独立发现落地检查（CHANGELOG '登记为后续改进' 标记必须有对应 work_queue 条目）。所有自主可执行项已清空。
