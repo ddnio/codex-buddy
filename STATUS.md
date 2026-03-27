@@ -9,7 +9,7 @@
 v2.5.3
 
 ## repo_commit
-5382093
+c0839cc
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
