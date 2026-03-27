@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v2.5.4
+v2.5.5
 
 ## repo_commit
 b139ecc
@@ -52,6 +52,7 @@ NONE
   reversibility: safe
   done_when: "SKILL.md 含 Output Contract 章节 + Verification Escalation Matrix 章节，且 wc -l SKILL.md | awk '{print $1}' 输出 < 150"
   status: done
+  note: "v2.5 重构后章节名已融合（Output Contract → 反馈+升级规则，VEM → V-level 表），功能仍保留"
 
 - id: W-004
   type: improve
@@ -158,4 +159,4 @@ NONE
 FIXED
 
 ## last_round_notes
-v2.5.4: 补 3 条 eval 覆盖 W-011/W-012 新边界（Review 驱动，Codex 独立发现缺 eval）。
+v2.5.5: Codex 全面 review 驱动重构——V2 定义修正、治理信息下放、规则去重、证据脱敏。SKILL.md 135→123 行。落地 7/10 claims。

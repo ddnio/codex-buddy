@@ -125,8 +125,8 @@
     {
       "id": 21,
       "prompt": "我还没安装 codex CLI，这个 skill 能用吗？",
-      "expected_output": "检测到 codex 不可用时回复 [blocked: codex unavailable]，指引用户安装，本轮仅给 [未验证] 结论",
-      "tags": ["codex-unavailable", "preflight-check", "boundary-stop"]
+      "expected_output": "回复开头标注 V-header（如 V1 | [blocked: codex unavailable]），指引用户安装，本轮仅给 [未验证] 结论",
+      "tags": ["codex-unavailable", "preflight-check", "boundary-stop", "v-level-header"]
     }
   ]
 }

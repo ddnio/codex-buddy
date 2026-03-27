@@ -4,6 +4,25 @@
 
 ---
 
+## v2.5.5 — 2026-03-27 Codex 全面 Review 驱动重构
+
+### 内容
+- V2 定义修正："需要本地执行验证的判断" → "需要独立第二判断的决策"
+- 项目反馈 + 跨会话记忆下放到 WORKFLOW.md（SKILL.md 135→123 行，回收 12 行）
+- blocked 路径统一要求 V-header：`V{N} | [blocked: codex unavailable]`
+- 注意事项新增证据脱敏规则、workspace-write 告知义务
+- 规则去重：合并重复的"不传结论"和"不可逆验证"
+- STATUS.md W-003 加 note 说明章节名融合
+- README eval 数量 18→21
+
+### Codex 交互
+- Probe: Codex 全面 review 提出 10 个 Claims（3 高 / 4 中 / 2 低）
+- 独立发现: V2 定义脱节（C1）、治理信息挤占运行时注意力（C2）、证据脱敏缺口（C7）
+- 本轮落地 7/10 claims，3 个留后续
+- 讨论记录: [discussions/2026-03-27-v255-comprehensive-review.md](discussions/2026-03-27-v255-comprehensive-review.md)
+
+---
+
 ## v2.5.4 — 2026-03-27 补 eval 覆盖 W-011/W-012 边界（Review 驱动）
 
 ### 内容
