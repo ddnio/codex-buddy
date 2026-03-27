@@ -4,6 +4,18 @@
 
 ---
 
+## v2.5.4 — 2026-03-27 补 eval 覆盖 W-011/W-012 边界（Review 驱动）
+
+### 内容
+- evals 18→21 条：新增 #19（兜底规则例外：查原文→V0/V1）、#20（兜底规则命中：讨论改规则→V2）、#21（codex 不可用→blocked）
+- 覆盖 floor-rule-exception / floor-rule-hit / preflight-check 三个新 tag
+
+### Codex 交互
+- Review Probe: Codex 独立发现缺 eval 覆盖（Low severity），Claude 未注意到
+- 无分歧，直接落地
+
+---
+
 ## v2.5.3 — 2026-03-27 Codex CLI 前置检查（W-012）
 
 ### 内容

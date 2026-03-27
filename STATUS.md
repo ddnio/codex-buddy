@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v2.5.3
+v2.5.4
 
 ## repo_commit
 c0839cc
@@ -158,4 +158,4 @@ NONE
 FIXED
 
 ## last_round_notes
-v2.5.3: Codex CLI 前置检查（W-012），未安装时回复 blocked 并指引安装。cli-examples.md 补守卫。1 Probe 收敛。
+v2.5.4: 补 3 条 eval 覆盖 W-011/W-012 新边界（Review 驱动，Codex 独立发现缺 eval）。

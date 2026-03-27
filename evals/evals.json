@@ -109,6 +109,24 @@
       "prompt": "上一轮 Codex 说信息不足无法判断，我这里有完整的错误日志，要不要补充给它？",
       "expected_output": "回复开头标注 V2，使用 Follow-up 协议通过 exec resume 补充原始证据；补充时仍不传 Claude 结论，只传原始日志",
       "tags": ["should-trigger", "follow-up", "v2", "probe-execution", "evidence-packaging"]
+    },
+    {
+      "id": 19,
+      "prompt": "SKILL.md 第 30 行写的兜底触发规则原文是什么？",
+      "expected_output": "回复开头标注 V0 或 V1，这是查现状/原文，属于兜底规则的例外，不强制 V2",
+      "tags": ["v0-classify", "no-codex-exec", "meta", "floor-rule-exception", "v-level-header"]
+    },
+    {
+      "id": 20,
+      "prompt": "codex-buddy 的兜底触发规则是否应该改成关键词枚举而不是泛化原则？",
+      "expected_output": "回复开头标注 V2，命中兜底触发规则（讨论 skill 设计决策/规则修改），必须执行 Probe",
+      "tags": ["should-trigger", "probe", "v2", "meta", "floor-rule-hit", "v-level-header"]
+    },
+    {
+      "id": 21,
+      "prompt": "我还没安装 codex CLI，这个 skill 能用吗？",
+      "expected_output": "检测到 codex 不可用时回复 [blocked: codex unavailable]，指引用户安装，本轮仅给 [未验证] 结论",
+      "tags": ["codex-unavailable", "preflight-check", "boundary-stop"]
     }
   ]
 }
