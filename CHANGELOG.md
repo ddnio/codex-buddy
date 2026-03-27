@@ -4,6 +4,20 @@
 
 ---
 
+## v2.5.3 — 2026-03-27 Codex CLI 前置检查（W-012）
+
+### 内容
+- SKILL.md 注意事项新增第 5 条：首次调用前检测 codex CLI 可用性，不可用时回复 `[blocked: codex unavailable]` 并指引安装
+- cli-examples.md：`which codex` → 守卫式 `command -v codex` + 错误提示
+
+### Codex 交互
+- Probe: Codex 独立提出双层处理（SKILL.md + cli-examples 守卫），Claude 只想到 SKILL.md 层
+- 独立发现: cli-examples.md 守卫式写法（C4），被采纳
+- 无分歧，1 次 Probe 收敛
+- 讨论记录: [discussions/2026-03-27-w012-codex-cli-preflight.md](discussions/2026-03-27-w012-codex-cli-preflight.md)
+
+---
+
 ## v2.5.2 — 2026-03-27 兜底触发规则（W-011）
 
 ### 内容

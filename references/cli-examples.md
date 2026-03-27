@@ -22,7 +22,8 @@
 不传 Claude 结论，让 Codex 独立回答。
 
 ```bash
-CODEX_BIN=$(which codex)
+CODEX_BIN="$(command -v codex || true)"
+[ -n "$CODEX_BIN" ] || { echo "Codex CLI not found. See README install section."; exit 1; }
 PROJECT_DIR="/your/project/path"
 OUTPUT_FILE="/tmp/codex-probe-$(date +%s).txt"
 

@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v2.5.2
+v2.5.3
 
 ## repo_commit
 5382093
@@ -125,6 +125,15 @@ NONE
   done_when: "SKILL.md EXTREMELY-IMPORTANT 块含兜底触发规则，覆盖 skill/验证机制/多代理协作机制设计决策，wc -l < 150"
   status: done
 
+- id: W-012
+  type: improve
+  title: Codex CLI 前置检查（未安装用户体验）
+  source: 用户提出 + Codex 独立发现 cli-examples 守卫
+  impact: medium
+  reversibility: safe
+  done_when: "SKILL.md 含 codex CLI 前置检查规则，cli-examples.md 含 command -v 守卫，wc -l SKILL.md < 150"
+  status: done
+
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
@@ -132,7 +141,7 @@ NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-W-011 完成；剩余 open 项仅 W-001/W-002，均阻断于 human input
+W-012 完成；剩余 open 项仅 W-001/W-002，均阻断于 human input
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -149,4 +158,4 @@ NONE
 FIXED
 
 ## last_round_notes
-v2.5.2: SKILL.md 新增兜底触发规则（W-011），解决自评 V-level 误分类盲区。Claude+Codex 1 Probe + 1 Follow-up 收敛。
+v2.5.3: Codex CLI 前置检查（W-012），未安装时回复 blocked 并指引安装。cli-examples.md 补守卫。1 Probe 收敛。

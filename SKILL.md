@@ -132,3 +132,4 @@ Codex 没有新发现 → 写 `no-op`，不编造。
 2. 禁止递归：Codex 结论不再交给 Codex 验证
 3. 沙盒：默认 `read-only`；需要执行验证时才升 `-s workspace-write`
 4. 破坏性操作前：必须人工外部验证，不能只靠双模型共识
+5. Codex CLI 前置检查：首次调用前运行 `command -v codex`；失败则回复 `[blocked: codex unavailable]`，指引用户按 README 安装，本轮仅给 `[未验证]` 结论
