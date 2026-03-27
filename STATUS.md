@@ -6,7 +6,7 @@
 ---
 
 ## skill_version
-v2.5.5
+v2.5.6
 
 ## repo_commit
 45701f3
@@ -146,17 +146,17 @@ W-012 完成；剩余 open 项仅 W-001/W-002，均阻断于 human input
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
-ITERATE
+BLOCKED
 
 ## human_gate
 <!-- NONE | REQUIRED:<reason> -->
 <!-- reason 枚举: destructive / selection_conflict / missing_input / external_side_effect -->
 <!-- human_gate != NONE 时：在 STATUS.md 写明阻断原因；cron 场景停止循环并打印阻断信息 -->
-NONE
+REQUIRED:missing_input — W-001/W-002 需要真实对话 transcript，无法自动生成
 
 ## last_round_outcome
 <!-- FIXED | VALIDATED | NO_OP | REGRESSED | UNCERTAIN -->
 FIXED
 
 ## last_round_notes
-v2.5.5: Codex 全面 review 驱动重构——V2 定义修正、治理信息下放、规则去重、证据脱敏。SKILL.md 135→123 行。落地 7/10 claims。
+v2.5.6: 收尾优化 + 大方向复盘。SESSION_ID 改进、eval 21→27、默认回路。Codex 复盘判断 SKILL.md 到收益递减点，应冻结转向真实验证。修复 STATUS 语义漂移。

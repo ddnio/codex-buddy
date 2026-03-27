@@ -4,6 +4,22 @@
 
 ---
 
+## v2.5.6 — 2026-03-27 收尾优化 + 大方向复盘
+
+### 内容
+- cli-examples.md: SESSION_ID 记录从 `ls -t ~/.codex/sessions/` 改为按日期目录 + UUID 提取
+- evals 21→27 条：新增 V1 跳过标未验证、共识直接执行、污染检查、unstructured 返回、workspace-write 告知、missing_input 停止
+- SKILL.md 顶部新增默认回路一行概览（125 行）
+- README eval 数量同步
+
+### Codex 交互
+- 大方向复盘 Probe：Codex 判断 SKILL.md 已到收益递减点，应冻结主体转向真实使用验证
+- 根本性发现：项目把文档质量当系统正确性代理指标，治理同步落后于实际改动
+- 建议：冻结 SKILL.md + 补真实 transcript + CHANGELOG/STATUS 同步硬门
+- 讨论记录: [discussions/2026-03-27-v256-retrospective.md](discussions/2026-03-27-v256-retrospective.md)
+
+---
+
 ## v2.5.5 — 2026-03-27 Codex 全面 Review 驱动重构
 
 ### 内容

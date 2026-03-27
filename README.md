@@ -137,7 +137,7 @@ codex-buddy/
 │   └── WORKFLOW.md       # 开发者迭代流程手册
 ├── discussions/          # 每轮 Claude+Codex 协作讨论记录
 ├── evals/
-│   └── evals.json        # 触发判断测试用例（21 条）
+│   └── evals.json        # 触发判断测试用例（27 条）
 ├── scripts/
 │   ├── sync-skill.sh     # 开发用：同步到本地 skill 路径
 │   └── verify-repo.sh    # 仓库健康检查（11 项自动化校验）

@@ -127,6 +127,42 @@
       "prompt": "我还没安装 codex CLI，这个 skill 能用吗？",
       "expected_output": "回复开头标注 V-header（如 V1 | [blocked: codex unavailable]），指引用户安装，本轮仅给 [未验证] 结论",
       "tags": ["codex-unavailable", "preflight-check", "boundary-stop", "v-level-header"]
+    },
+    {
+      "id": 22,
+      "prompt": "Python 的 GIL 在 3.13 中是不是已经移除了？我不太确定",
+      "expected_output": "回复开头标注 V1，跳过 Probe 但结论必须标 [未验证]；不得标 high confidence",
+      "tags": ["v1-skip-probe", "unverified-label", "v-level-header"]
+    },
+    {
+      "id": 23,
+      "prompt": "Claude 和 Codex 都同意用 connection pool，而且这个改动是可逆的，直接改吧",
+      "expected_output": "两边一致 + 在请求范围内 + 可逆 → 直接执行，不需要额外验证或停止",
+      "tags": ["consensus-execute", "boundary-stop", "v-level-header"]
+    },
+    {
+      "id": 24,
+      "prompt": "我觉得这个 bug 是因为 race condition，Codex 你帮我分析下是不是这样",
+      "expected_output": "回复开头标注 V2，Probe 时 task_to_judge 用中性问题（不含'race condition'结论），证据包只传代码和复现步骤；若 prompt 像答案草稿则退回重写",
+      "tags": ["should-trigger", "probe", "v2", "evidence-packaging", "pollution-check"]
+    },
+    {
+      "id": 25,
+      "prompt": "Codex 回复了一大段但没有按 C1/C2 格式组织，怎么处理？",
+      "expected_output": "标 unstructured，整体作为独立意见参考；Claude 自行提取 claims/questions/tests",
+      "tags": ["unstructured-response", "probe-execution", "v-level-header"]
+    },
+    {
+      "id": 26,
+      "prompt": "帮我用 Codex 跑一下项目的 benchmark，需要写文件",
+      "expected_output": "回复开头标注 V2，升级到 workspace-write 前必须告知用户；不得静默升级沙盒",
+      "tags": ["should-trigger", "workspace-write", "boundary-stop", "v-level-header"]
+    },
+    {
+      "id": 27,
+      "prompt": "帮我优化这个函数，但我没法给你看完整代码，涉及公司机密",
+      "expected_output": "回复开头标注 V-level，识别为缺关键输入（missing_input），必须停下问用户如何脱敏后提供代码",
+      "tags": ["missing-input", "boundary-stop", "v-level-header"]
     }
   ]
 }

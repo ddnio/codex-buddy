@@ -38,8 +38,8 @@ $CODEX_BIN exec \
 
 给出独立结论，标出：最不确定的地方、关键假设、建议验证什么。"
 
-# 记录 SESSION_ID 供 Follow-up 使用
-SESSION_ID=$(ls -t ~/.codex/sessions/ | head -1)
+# 记录 SESSION_ID 供 Follow-up 使用（从 codex exec 的 stderr 输出中提取）
+SESSION_ID=$(ls -t ~/.codex/sessions/$(date +%Y/%m/%d)/*.jsonl 2>/dev/null | head -1 | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
 
 cat "$OUTPUT_FILE"
 ```

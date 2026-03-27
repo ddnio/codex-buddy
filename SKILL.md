@@ -11,6 +11,8 @@ description: >
 
 **两模型一致 ≠ 正确。真值来自执行验证，不来自模型共识。**
 
+**默认回路：** 判 V-level → 打包证据 → Probe（独立双判）→ 综合 → 标注置信度。
+
 <EXTREMELY-IMPORTANT>
 加载此 skill ≠ 执行 codex exec。加载建立会话级验证政策；执行按验证级别条件触发。
 
