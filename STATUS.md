@@ -6,10 +6,10 @@
 ---
 
 ## skill_version
-v2.5.1
+v2.5.2
 
 ## repo_commit
-f2b96cd
+pending
 
 ## health_status
 <!-- HEALTHY | NEEDS_TRIAGE | BLOCKED -->
@@ -116,6 +116,15 @@ NONE
   done_when: "grep -c 'Mode A\\|Mode B\\|Mode C' references/WORKFLOW.md CONTRIBUTING.md 输出 0"
   status: done
 
+- id: W-011
+  type: improve
+  title: 兜底触发规则（绕过自评盲区）
+  source: 用户观察到 V-level 误判 + Codex 独立确认
+  impact: high
+  reversibility: safe
+  done_when: "SKILL.md EXTREMELY-IMPORTANT 块含兜底触发规则，覆盖 skill/验证机制/多代理协作机制设计决策，wc -l < 150"
+  status: done
+
 ## selected_item
 <!-- 由 AI 从 work_queue 推导；不再人工填写 -->
 <!-- 格式: W-xxx；无待办写 NONE -->
@@ -123,7 +132,7 @@ NONE
 
 ## selection_rationale
 <!-- Claude + Codex 综合选题的理由（一句话）；过渡期填 [transition-mode: <Claude 独立判断>] -->
-W-010 完成；剩余 open 项仅 W-001/W-002，均阻断于 human input；自主可执行项已清空
+W-011 完成；剩余 open 项仅 W-001/W-002，均阻断于 human input
 
 ## operating_mode
 <!-- TRIAGE | ITERATE | VALIDATE | BLOCKED -->
@@ -140,4 +149,4 @@ NONE
 FIXED
 
 ## last_round_notes
-v2.5.1: README.md 与 v2.5 SKILL.md 对齐（Mode A/B/C → Probe/Follow-up/Challenge + V0-V3 验证级别 + 项目结构更新）。
+v2.5.2: SKILL.md 新增兜底触发规则（W-011），解决自评 V-level 误分类盲区。Claude+Codex 1 Probe + 1 Follow-up 收敛。

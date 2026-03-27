@@ -4,6 +4,21 @@
 
 ---
 
+## v2.5.2 — 2026-03-27 兜底触发规则（W-011）
+
+### 内容
+- SKILL.md EXTREMELY-IMPORTANT 块新增兜底触发规则：讨论 skill/验证机制/多代理协作机制的设计决策 → 最低 V2
+- 解决自评盲区：红旗列表拦"合理化跳过"但拦不住"误分类"
+- 131→134 行，不压缩现有段落
+
+### Codex 交互
+- Probe: Codex 独立提出"自评主导+模式匹配兜底"混合制（C1），与 Claude 一致
+- Follow-up: 收敛两个微分歧（枚举 vs 泛化原则；是否压缩段落）
+- 独立发现: Codex 建议扩范围覆盖"多代理协作机制"，被采纳
+- 讨论记录: [discussions/2026-03-27-w011-auto-trigger-floor.md](discussions/2026-03-27-w011-auto-trigger-floor.md)
+
+---
+
 ## v2.5.1 — 2026-03-26 README.md 对齐 v2.5 设计
 
 ### 内容
